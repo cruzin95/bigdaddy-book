@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title id="pageTitle">Event Inquiry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0d0a; --surface:#161410; --surface-2:#1d1a14; --surface-3:#232019;
+  --line:#2b271f; --line-2:#3a352a;
+  --ink:#f2ede1; --muted:#9a9080; --muted-2:#6b6353;
+  --amber:#eaa23a; --amber-dim:#a87524; --amber-soft:rgba(234,162,58,.12);
+  --red:#d3765b; --red-soft:rgba(211,118,91,.14);
+  --display:'Bebas Neue',sans-serif;
+  --mono:'Space Mono',monospace;
+  --body:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+::selection{background:var(--amber);color:#0e0d0a}
+
+.wrap{max-width:600px;margin:0 auto;padding:0 20px 80px}
+
+/* ---- header ---- */
+.hero{padding:40px 0 28px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero .mark{font-family:var(--display);font-size:2.2rem;letter-spacing:.05em;color:var(--ink);line-height:1}
+.hero .sub{font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-2);margin-top:6px}
+.hero .pitch{margin-top:16px;font-size:.95rem;color:var(--muted);line-height:1.6;max-width:46ch}
+
+/* ---- sections ---- */
+.sec{margin-bottom:26px}
+.sec-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.sec-label::before{content:"// ";color:var(--amber-dim)}
+.hint{font-size:.78rem;color:var(--muted-2);margin-top:6px;line-height:1.5}
+
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.85rem;color:var(--ink);margin-bottom:7px;font-weight:500}
+.field label .opt{font-family:var(--mono);font-size:.68rem;color:var(--muted-2);text-transform:uppercase;letter-spacing:.05em;font-weight:400;margin-left:6px}
+.inp{width:100%;background:var(--surface-2);border:1px solid var(--line-2);border-radius:8px;padding:13px 14px;font-size:.95rem;color:var(--ink);font-family:var(--body);transition:.14s}
+.inp::placeholder{color:var(--muted-2)}
+.inp:focus{outline:none;border-color:var(--amber-dim);background:var(--surface-3)}
+.inp[type="date"]{color-scheme:dark}
+textarea.inp{resize:vertical;min-height:80px;line-height:1.55}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.row2{grid-template-columns:1fr}}
+
+/* ---- pill choices ---- */
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-family:var(--body);font-size:.86rem;padding:11px 16px;border-radius:100px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);cursor:pointer;transition:.14s;user-select:none;text-align:center}
+.pill:hover{border-color:var(--amber-dim)}
+.pill.active{background:var(--amber);border-color:var(--amber);color:#140f08;font-weight:600}
+.pill-err .pills{outline:1px solid var(--red);outline-offset:6px;border-radius:12px}
+
+.other-input{margin-top:10px;display:none}
+.other-input.show{display:block}
+
+/* ---- checkbox row ---- */
+.chk-row{display:flex;align-items:center;gap:9px;margin-top:8px;cursor:pointer}
+.chk-row input{width:17px;height:17px;accent-color:var(--amber);cursor:pointer;flex-shrink:0}
+.chk-row span{font-size:.83rem;color:var(--muted)}
+
+/* ---- more toggle ---- */
+.more-toggle{display:flex;align-items:center;gap:9px;background:none;border:1px solid var(--line-2);border-radius:8px;padding:13px 16px;width:100%;color:var(--ink);font-family:var(--body);font-size:.88rem;cursor:pointer;transition:.14s;margin-bottom:20px}
+.more-toggle:hover{border-color:var(--amber-dim)}
+.more-toggle .car{margin-left:auto;font-family:var(--mono);color:var(--amber-dim);transition:transform .18s}
+.more-toggle.open .car{transform:rotate(180deg)}
+.more-wrap{display:none}
+.more-wrap.open{display:block;animation:reveal .2s ease}
+@keyframes reveal{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.more-note{font-size:.78rem;color:var(--muted-2);margin-bottom:18px;line-height:1.5}
+
+/* ---- submit ---- */
+.submit-row{margin-top:32px}
+.submit-btn{width:100%;background:var(--amber);border:1px solid var(--amber);color:#140f08;font-weight:700;font-family:var(--body);font-size:1rem;padding:16px;border-radius:8px;cursor:pointer;transition:.14s}
+.submit-btn:hover{background:#f4b04c;border-color:#f4b04c}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.submit-note{text-align:center;font-size:.75rem;color:var(--muted-2);margin-top:12px;font-family:var(--mono)}
+.err-msg{font-size:.78rem;color:var(--red);margin-top:10px;display:none}
+.err-msg.show{display:block}
+.form-err{background:var(--red-soft);border:1px solid rgba(211,118,91,.35);color:var(--red);border-radius:8px;padding:12px 14px;font-size:.85rem;margin-bottom:20px;display:none}
+.form-err.show{display:block}
+
+/* ---- success state ---- */
+.success{display:none;text-align:center;padding:70px 20px}
+.success.show{display:block}
+.success .check{width:52px;height:52px;border-radius:50%;background:var(--amber-soft);border:1px solid var(--amber-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 22px;font-size:22px;color:var(--amber)}
+.success h1{font-family:var(--display);font-size:1.8rem;letter-spacing:.03em;color:var(--ink);margin-bottom:10px}
+.success p{font-size:.92rem;color:var(--muted);line-height:1.6;max-width:38ch;margin:0 auto}
+.success .direct{margin-top:22px;font-family:var(--mono);font-size:.8rem;color:var(--muted-2)}
+.success .direct a{color:var(--amber);text-decoration:none}
+
+.form-view.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="mark" id="heroMark"></div>
+    <div class="sub" id="heroSub"></div>
+    <div class="pitch" id="heroPitch"></div>
+  </div>
+
+  <div class="form-view" id="formView">
+    <div class="form-err" id="formErr"></div>
+    <form id="inqForm" novalidate>
+      <div id="formSections"></div>
+      <div class="submit-row">
+        <button type="submit" class="submit-btn" id="submitBtn"></button>
+        <div class="submit-note" id="submitNote"></div>
+      </div>
+    </form>
+  </div>
+
+  <div class="success" id="successView">
+    <div class="check">&#10003;</div>
+    <h1 id="successTitle"></h1>
+    <p id="successBody"></p>
+    <div class="direct">Need to reach us directly? <a id="directEmail" href="#"></a></div>
+  </div>
+
+</div>
+
+<script src="config.js"></script>
+<script>
+/* ── FORM RENDERER ─────────────────────────────────────────────────────
+   Everything below reads its shape from APP_CONFIG.intakeForm
+   (config.js) instead of hardcoding fields -- see that file's
+   `intakeForm` section for the field list, and its header comment for
+   how to add/remove/reorder a field. ────────────────────────────────── */
+
+const F = APP_CONFIG.intakeForm;
+const T = APP_CONFIG.withBusinessName;
+
+document.title = T(F.heroTitle) + ': ' + F.heroSubtitle;
+document.getElementById('heroMark').textContent = T(F.heroTitle).toUpperCase();
+document.getElementById('heroSub').textContent = F.heroSubtitle;
+document.getElementById('heroPitch').textContent = F.heroPitch;
+document.getElementById('submitBtn').textContent = F.submitLabel;
+document.getElementById('submitNote').textContent = F.submitNote;
+document.getElementById('successTitle').textContent = F.successTitle;
+document.getElementById('successBody').textContent = F.successBody;
+document.getElementById('directEmail').textContent = APP_CONFIG.business.bookingEmail;
+document.getElementById('directEmail').href = 'mailto:' + APP_CONFIG.business.bookingEmail;
+
+// Basic theming: overrides the CSS defaults above with config.js's theme
+// tokens so a reskin's brand color shows up here too, deriving the same
+// elevated-surface/border/text steps shared.js's applyTheme() computes for
+// the signed-in hub pages (same math, copied rather than imported -- this
+// is a standalone public form with no sign-in, so it doesn't load
+// shared.js). Without deriving --surface-2/3 and --line/-2, input fields
+// (which use --surface-2) would stay stuck at this stylesheet's hardcoded
+// dark default even on a light theme.
+(function applyBasicTheme(){
+  const th = APP_CONFIG.theme;
+  const r = document.documentElement.style;
+  function hexToHsl(hex){
+    hex=(hex||'').replace('#','');
+    if(hex.length!==6) return [0,0,50];
+    const rr=parseInt(hex.substr(0,2),16)/255, gg=parseInt(hex.substr(2,2),16)/255, bb=parseInt(hex.substr(4,2),16)/255;
+    const max=Math.max(rr,gg,bb), min=Math.min(rr,gg,bb); let h,s,l=(max+min)/2;
+    if(max===min){ h=s=0; } else {
+      const d=max-min; s=l>0.5?d/(2-max-min):d/(max+min);
+      if(max===rr) h=(gg-bb)/d+(gg<bb?6:0); else if(max===gg) h=(bb-rr)/d+2; else h=(rr-gg)/d+4;
+      h/=6;
+    }
+    return [h*360, s*100, l*100];
+  }
+  function hslToHex(h,s,l){
+    h/=360; s/=100; l/=100; let rr,gg,bb;
+    if(s===0){ rr=gg=bb=l; } else {
+      const hue2rgb=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
+      const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+      rr=hue2rgb(p,q,h+1/3); gg=hue2rgb(p,q,h); bb=hue2rgb(p,q,h-1/3);
+    }
+    const toHex=x=>{ const v=Math.round(Math.max(0,Math.min(1,x))*255).toString(16); return v.length===1?'0'+v:v; };
+    return '#'+toHex(rr)+toHex(gg)+toHex(bb);
+  }
+  function adjustL(hex,deltaPct){ const [h,s,l]=hexToHsl(hex); return hslToHex(h,s,Math.max(0,Math.min(100,l+deltaPct))); }
+  function hexToRgba(hex,alpha){
+    hex=(hex||'').replace('#',''); if(hex.length!==6) return `rgba(234,162,58,${alpha})`;
+    const rr=parseInt(hex.substr(0,2),16), gg=parseInt(hex.substr(2,2),16), bb=parseInt(hex.substr(4,2),16);
+    return `rgba(${rr},${gg},${bb},${alpha})`;
+  }
+  if(th.accent){
+    r.setProperty('--amber', th.accent);
+    r.setProperty('--amber-dim', adjustL(th.accent,-25));
+    r.setProperty('--amber-soft', hexToRgba(th.accent,0.12));
+  }
+  if(th.bg) r.setProperty('--bg', th.bg);
+  if(th.card){
+    r.setProperty('--surface', th.card);
+    r.setProperty('--surface-2', adjustL(th.card,4));
+    r.setProperty('--surface-3', adjustL(th.card,9));
+    r.setProperty('--line', adjustL(th.card,14));
+    r.setProperty('--line-2', adjustL(th.card,22));
+  }
+  if(th.text){
+    r.setProperty('--ink', th.text);
+    r.setProperty('--ink2', adjustL(th.text,-10));
+  }
+  if(th.mutedText){
+    r.setProperty('--muted', th.mutedText);
+    r.setProperty('--muted-2', adjustL(th.mutedText,-20));
+  }
+})();
+
+/* ── pill (tap-choice) groups ─────────────────────────────────────────
+   single-select by default; multi-select groups toggle independently. */
+const singleSelect = {};   // groupId -> selected value
+const multiSelect   = {};  // groupId -> Set of selected values
+const controlsById  = {};  // groupId -> control def, for payload building
+
+function initPillGroup(id, multi){
+  const el = document.getElementById('pills-' + id);
+  if(!el) return;
+  if(multi) multiSelect[id] = new Set();
+  el.querySelectorAll('.pill').forEach(p => {
+    p.addEventListener('click', () => {
+      const val = p.dataset.val;
+      if(multi){
+        const set = multiSelect[id];
+        if(set.has(val)){ set.delete(val); p.classList.remove('active'); }
+        else { set.add(val); p.classList.add('active'); }
+      } else {
+        el.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+        p.classList.add('active');
+        singleSelect[id] = val;
+      }
+      clearFieldError(id);
+      applyShowIf();
+    });
+  });
+}
+
+/* ── conditional visibility ────────────────────────────────────────────
+   A control can declare showIf: {field, equals} or {field, notEquals} to
+   hide itself based on another (pill-group) control's current value --
+   e.g. hiding the POS question entirely for an open bar, since nobody's
+   swiping a card. Re-evaluated after every pill click; the default (no
+   selection yet) always counts as visible, so nothing flashes on load. */
+function applyShowIf(){
+  allControls.forEach(ctrl => {
+    if(!ctrl.showIf) return;
+    const wrap = document.getElementById('sec-' + ctrl.id) || document.getElementById('field-' + ctrl.id);
+    if(!wrap) return;
+    const current = singleSelect[ctrl.showIf.field];
+    let visible = true;
+    if('equals' in ctrl.showIf) visible = current === ctrl.showIf.equals;
+    if('notEquals' in ctrl.showIf) visible = current !== ctrl.showIf.notEquals;
+    wrap.hidden = !visible;
+  });
+}
+
+/* ── render one control (input/pills/date/textarea) as HTML ────────── */
+function optTag(ctrl){ return ctrl.optional ? `<span class="opt">optional</span>` : (ctrl.optionalTag ? `<span class="opt">${ctrl.optionalTag}</span>` : ''); }
+function hintHtml(ctrl){ return ctrl.hint ? `<div class="hint">${ctrl.hint}</div>` : ''; }
+function errHtml(ctrl){ return ctrl.errorMsg ? `<div class="err-msg" id="err-${ctrl.id}">${ctrl.errorMsg}</div>` : ''; }
+function pillsHtml(ctrl){
+  return `<div class="pills" id="pills-${ctrl.id}">` +
+    ctrl.options.map(o => `<div class="pill" data-val="${escAttr(o.value)}">${escHtml(o.label)}</div>`).join('') +
+    `</div>`;
+}
+function escHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s){ return escHtml(s); }
+
+function renderControl(ctrl){
+  controlsById[ctrl.id] = ctrl;
+  const label = T(ctrl.label);
+  let inner = '';
+
+  if(ctrl.kind === 'name' || ctrl.kind === 'text'){
+    inner = `<input class="inp" type="${ctrl.htmlType||'text'}" id="${ctrl.id}" placeholder="${escAttr(ctrl.placeholder||'')}" ${ctrl.autocomplete?`autocomplete="${ctrl.autocomplete}"`:''}>`;
+  } else if(ctrl.kind === 'textarea'){
+    inner = `<textarea class="inp" id="${ctrl.id}" placeholder="${escAttr(ctrl.placeholder||'')}"></textarea>`;
+  } else if(ctrl.kind === 'pills' || ctrl.kind === 'pills-multi'){
+    inner = pillsHtml(ctrl);
+  } else if(ctrl.kind === 'date-flex'){
+    inner = `<input class="inp" type="date" id="${ctrl.id}">` +
+      `<div class="chk-row" onclick="document.getElementById('${ctrl.id}Flex').click()">` +
+      `<input type="checkbox" id="${ctrl.id}Flex"><span>${escHtml(ctrl.flexLabel||'Flexible / not sure yet')}</span></div>`;
+  }
+
+  if(ctrl.asSection){
+    return `<div class="sec" id="sec-${ctrl.id}">
+      <div class="sec-label">${label}</div>
+      ${inner}
+      ${hintHtml(ctrl)}
+      ${errHtml(ctrl)}
+    </div>`;
+  }
+  return `<div class="field" id="field-${ctrl.id}">
+    <label${ctrl.kind==='pills'||ctrl.kind==='pills-multi'?'':` for="${ctrl.id}"`}>${label} ${optTag(ctrl)}</label>
+    ${inner}
+    ${hintHtml(ctrl)}
+    ${errHtml(ctrl)}
+  </div>`;
+}
+
+/* row2 pairing: an item in `controls` can be a single control object or
+   an array of exactly 2, rendered side by side. */
+function renderControlsList(controls){
+  return controls.map(item => Array.isArray(item)
+    ? `<div class="row2">${item.map(renderControl).join('')}</div>`
+    : renderControl(item)
+  ).join('');
+}
+
+function flattenControls(controls){
+  const out = [];
+  controls.forEach(item => Array.isArray(item) ? out.push(...item) : out.push(item));
+  return out;
+}
+
+/* ── build the whole form from F.sections ─────────────────────────────
+   Only 'main' (rendered inline) and 'more' (collapsed behind a toggle)
+   are supported -- that covers the progressive-disclosure pattern this
+   form uses. Add a case here if a business genuinely needs a third
+   tier of disclosure. */
+const allControls = [];
+let sectionsHtml = '';
+F.sections.forEach(section => {
+  const controls = flattenControls(section.controls);
+  allControls.push(...controls);
+  if(section.key === 'main'){
+    sectionsHtml += `<div class="sec">${renderControlsList(section.controls)}</div>`;
+  } else if(section.key === 'more'){
+    sectionsHtml += `
+      <button type="button" class="more-toggle" id="moreToggle">${F.moreToggleLabel}<span class="car">▾</span></button>
+      <div class="more-wrap" id="moreWrap">
+        <div class="more-note">${F.moreNote}</div>
+        ${renderControlsList(section.controls)}
+      </div>`;
+  }
+});
+document.getElementById('formSections').innerHTML = sectionsHtml;
+
+// Wire up pill groups now that they're in the DOM.
+allControls.forEach(ctrl => {
+  if(ctrl.kind === 'pills') initPillGroup(ctrl.id, false);
+  if(ctrl.kind === 'pills-multi') initPillGroup(ctrl.id, true);
+});
+applyShowIf();
+
+// Wire up any date-flex checkboxes.
+allControls.filter(c => c.kind === 'date-flex').forEach(ctrl => {
+  const dateInput = document.getElementById(ctrl.id);
+  const flex = document.getElementById(ctrl.id + 'Flex');
+  flex.addEventListener('change', () => {
+    dateInput.disabled = flex.checked;
+    if(flex.checked) dateInput.value = '';
+    dateInput.style.opacity = flex.checked ? '.4' : '1';
+  });
+});
+
+/* ── "tell us more" toggle ───────────────────────────────────────────── */
+const moreToggle = document.getElementById('moreToggle');
+const moreWrap = document.getElementById('moreWrap');
+if(moreToggle && moreWrap){
+  moreToggle.addEventListener('click', () => {
+    const open = moreWrap.classList.toggle('open');
+    moreToggle.classList.toggle('open', open);
+    moreToggle.firstChild.textContent = open ? 'Show less ' : F.moreToggleLabel + ' ';
+  });
+}
+
+/* ── validation helpers ───────────────────────────────────────────────── */
+function showFieldError(id){
+  const err = document.getElementById('err-' + id);
+  if(err) err.classList.add('show');
+  const sec = document.getElementById('sec-' + id);
+  if(sec) sec.classList.add('pill-err');
+}
+function clearFieldError(id){
+  const err = document.getElementById('err-' + id);
+  if(err) err.classList.remove('show');
+  const sec = document.getElementById('sec-' + id);
+  if(sec) sec.classList.remove('pill-err');
+}
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+function validate(){
+  let ok = true;
+  allControls.forEach(ctrl => clearFieldError(ctrl.id));
+
+  allControls.forEach(ctrl => {
+    if(!ctrl.required) return;
+    if(ctrl.kind === 'name' || ctrl.kind === 'text' || ctrl.kind === 'textarea'){
+      const v = document.getElementById(ctrl.id).value.trim();
+      if(!v || (ctrl.validate === 'email' && !isValidEmail(v))){ showFieldError(ctrl.id); ok = false; }
+    } else if(ctrl.kind === 'pills'){
+      if(!singleSelect[ctrl.id]){ showFieldError(ctrl.id); ok = false; }
+    } else if(ctrl.kind === 'pills-multi'){
+      if(!multiSelect[ctrl.id] || multiSelect[ctrl.id].size === 0){ showFieldError(ctrl.id); ok = false; }
+    }
+  });
+
+  return ok;
+}
+
+/* ── ref id ──────────────────────────────────────────────────────────
+   The backend (Code.gs) writes whatever refId it's given, no server-side
+   generation. The hub only shows rows where refId starts with "EVT-", so
+   this has to be generated here, or every submission silently disappears
+   from the board despite writing to the Sheet successfully. */
+function generateRefId(){
+  const d = new Date();
+  const stamp = d.toISOString().slice(0,10).replace(/-/g,''); // YYYYMMDD
+  const suffix = Math.random().toString(36).slice(2,6).toUpperCase();
+  return `EVT-${stamp}-${suffix}`;
+}
+
+/* ── build the submission payload from whatever the controls collected ─
+   Starts every intake field at '' (so staff-only / askOnForm:false
+   columns like Door Staff stay blank), then lets each rendered control
+   overwrite the field(s) named in its `writesTo`. */
+function buildPayload(){
+  const payload = { timestamp: new Date().toISOString(), refId: generateRefId() };
+  APP_CONFIG.intakeFields.forEach(f => { payload[f.id] = ''; });
+
+  allControls.forEach(ctrl => {
+    if(ctrl.kind === 'name'){
+      const name = document.getElementById(ctrl.id).value.trim();
+      const parts = name.split(/\s+/).filter(Boolean);
+      payload[ctrl.writesTo[0]] = parts[0] || '';
+      payload[ctrl.writesTo[1]] = parts.slice(1).join(' ') || '';
+    } else if(ctrl.kind === 'text' || ctrl.kind === 'textarea'){
+      payload[ctrl.writesTo] = document.getElementById(ctrl.id).value.trim();
+    } else if(ctrl.kind === 'pills-multi'){
+      const set = multiSelect[ctrl.id];
+      payload[ctrl.writesTo] = set && set.size ? [...set].join(ctrl.joinWith || ', ') : '';
+    } else if(ctrl.kind === 'pills'){
+      const val = singleSelect[ctrl.id] || '';
+      if(Array.isArray(ctrl.writesTo)){
+        // e.g. timeOfDay -> [doorsOpen, doorsClose] via the selected option's meta
+        const opt = (ctrl.options || []).find(o => o.value === val);
+        ctrl.writesTo.forEach(key => { payload[key] = (opt && opt.meta && opt.meta[key]) || ''; });
+      } else if(ctrl.valueMap){
+        payload[ctrl.writesTo] = ctrl.valueMap[val] || '';
+      } else {
+        payload[ctrl.writesTo] = val;
+      }
+    }
+  });
+
+  return payload;
+}
+
+/* ── submit ──────────────────────────────────────────────────────────── */
+const form = document.getElementById('inqForm');
+const submitBtn = document.getElementById('submitBtn');
+const formErr = document.getElementById('formErr');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  formErr.classList.remove('show');
+  if(!validate()){
+    formErr.textContent = 'A few things need a look before we can send this.';
+    formErr.classList.add('show');
+    try{ formErr.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){}
+    return;
+  }
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending…';
+  try{
+    const payload = buildPayload();
+    if(!APP_CONFIG.webhookUrl || APP_CONFIG.webhookUrl === 'YOUR_APPS_SCRIPT_WEB_APP_URL'){
+      throw new Error('Form is not yet connected to the inquiry sheet (config.js webhookUrl not configured).');
+    }
+    await fetch(APP_CONFIG.webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight against Apps Script
+      body: JSON.stringify(payload),
+    });
+    document.getElementById('formView').classList.add('hidden');
+    document.getElementById('successView').classList.add('show');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }catch(err){
+    formErr.textContent = 'Something went wrong sending this: ' + err.message;
+    formErr.classList.add('show');
+    submitBtn.disabled = false;
+    submitBtn.textContent = F.submitLabel;
+  }
+});
+</script>
+</body>
+</html>
