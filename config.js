@@ -109,25 +109,50 @@ const APP_CONFIG = (function () {
     text: '#f2f2f2', mutedText: '#9a9a9a',
   };
 
-  // ── PRICING MODEL: guest-count band x hours ──────────────────────────
-  // Same shape calculateVenueBase() in portal.html already implements for
-  // Carriage House (tier rate x day-of-week multiplier, plus hourly
-  // overage) -- it turns out "mobile bar service priced by expected
-  // attendance, with an hourly rate beyond the included window" fits that
-  // exact shape, so this needed values only, no code change. `tiers` here
-  // are attendance bands, not venue occupancy; `loadInRate` covers rig
-  // setup/breakdown time instead of venue load-in.
+  // ── PRICING MODEL: a continuous guest-count curve, not flat tiers ────
+  // The base bar-service fee is `baseRateCoefficient * guests ^
+  // baseRateExponent` (see calculateVenueBase() in portal.html) rather
+  // than a handful of hand-picked flat-rate bands. A flat tier can't
+  // extrapolate: "20,000+ guests" has to cover both a 20,001-person event
+  // and a 200,000-person one at the same price, which is exactly the
+  // failure mode that prompted this. `tiers` below is now display-only --
+  // guest-count band labels used on the quote/contract -- not a price
+  // lookup; every dollar figure comes from the curve.
+  //
+  // Calibrated against two real data points (2026-09-12): a small private
+  // party with a single bartender running about $1,500 all-in on the low
+  // end, and a real invoice for a 60,000-guest, 2-day/24-hour festival on
+  // the high end ($25,000 base "guarantee" covering staffing/overhead,
+  // billed as its own separate line from the license fee and
+  // infrastructure below). The exponent is 0.5 (a square-root curve) --
+  // sublinear on purpose, since per-guest cost genuinely drops at scale.
+  // This is a fit through two points, not a law of nature -- adjust
+  // baseRateCoefficient up/down to shift the whole curve, or exponent to
+  // change its steepness, and see KNOWN-GAPS-style caveat: extreme
+  // multi-day/24-hour bookings will still price higher than a bespoke
+  // guarantee-style quote once staffing/equipment scaling (below) is
+  // added on top, since this tool itemizes everything rather than
+  // bundling it into one flat number. Use the quote's "Custom flat fee"
+  // override for an exact match to a real negotiated guarantee like that.
   const pricing = {
+    baseRateCoefficient: 102,
+    baseRateExponent: 0.5,
     tiers: [
-      { id: 'u1000',    label: 'Under 1,000 guests',                    rate: 9000 },
-      { id: 't1to5k',   label: '1,000 – 5,000 guests',                  rate: 28000 },
-      { id: 't5to20k',  label: '5,000 – 20,000 guests',                 rate: 70000 },
-      { id: 't20kplus', label: '20,000+ guests (go big or go home)',    rate: 140000 },
+      { id: 'u1000',    label: 'Under 1,000 guests' },
+      { id: 't1to5k',   label: '1,000 – 5,000 guests' },
+      { id: 't5to20k',  label: '5,000 – 20,000 guests' },
+      { id: 't20kplus', label: '20,000+ guests (go big or go home)' },
     ],
-    includedHours: 4,     // hours of bar service included in the base rate
-    extraHourRate: 1200,  // $/hr beyond includedHours -- scaled up alongside the tier rates below
-    loadInRate: 400,      // $/hr for rig setup & breakdown
+    includedHours: 4,   // hours of bar service included in the base rate
+    extraHourRate: 75,  // $/hr beyond includedHours -- deliberately modest; the curve carries scale, not this
+    loadInRate: 60,      // $/hr for rig setup & breakdown
     dayMultipliers: { 5: 1.15, 6: 1.20 }, // Fri/Sat surge
+    // License / permit assistance, only charged when the client needs
+    // help getting one (see permitStatus and the 'license' PROD item in
+    // portal.html) -- calibrated off the same reference invoice: $5,000
+    // for a 2-day SLA temporary permit at 60,000 guests.
+    licensePerGuest: 0.083,
+    licenseMin: 250,
   };
 
   // ── COST SCALING: how staffing & equipment defaults size themselves to
@@ -141,26 +166,39 @@ const APP_CONFIG = (function () {
   // afterward, same as any other quote line item. Tune the numbers below;
   // no code changes needed elsewhere.
   const scaling = {
-    // Staffing: 1 of each role per N guests, floored at a minimum crew.
-    guestsPerBartender: 100,
-    guestsPerBarback: 200,
-    guestsPerLead: 750,
-    minBartenders: 2, minBarbacks: 1, minLeads: 1,
+    // Staffing: 1 of each role per N guests, floored at a minimum crew
+    // and capped at a maximum. The cap matters as much as the floor here:
+    // linear per-guest staffing has to break down somewhere, because a
+    // real 60,000-guest festival doesn't actually run 600 bartenders
+    // billed hourly -- past a point, headcount plateaus and cost is
+    // negotiated as part of the guarantee (the base rate above), not
+    // itemized per bartender-hour. The floor is deliberately just one
+    // bartender and zero barback/lead, matching a small private party.
+    guestsPerBartender: 150, maxBartenders: 20,
+    guestsPerBarback: 300,   maxBarbacks: 10,
+    guestsPerLead: 1000,     maxLeads: 4,
+    minBartenders: 1, minBarbacks: 0, minLeads: 0,
     // Extra bartenders added per additional bar station beyond the first
     // (separate from the guest-count math -- more physical bars need more
-    // hands even at the same total headcount).
+    // hands even at the same total headcount). Still subject to the cap.
     extraBartendersPerStation: 1,
 
     // Equipment/supplies that scale with expected attendance -- $/guest,
-    // with a floor so a tiny event doesn't price out at pennies.
-    icePerGuest: 0.20,     iceMin: 150,   // Ice & coolers
-    glassPerGuest: 0.30,   glassMin: 200, // Glassware package
-    mixersPerGuest: 0.35,  mixersMin: 0,  // Mixers & garnish
-    napkinsPerGuest: 0.15, napkinsMin: 0, // Cups, napkins & bar supplies
+    // with a floor so a tiny event doesn't price out at pennies, and a
+    // cap for the same plateau-past-a-point reason staffing has one.
+    icePerGuest: 0.20,     iceMin: 80,  iceMax: 800,    // Ice & coolers
+    glassPerGuest: 0.30,   glassMin: 100, glassMax: 1000, // Glassware package
+    mixersPerGuest: 0.35,  mixersMin: 0,  mixersMax: 1200, // Mixers & garnish
+    napkinsPerGuest: 0.15, napkinsMin: 0, napkinsMax: 600, // Cups, napkins & bar supplies
 
     // Equipment that scales with the number of physical bar setups instead
     // of headcount -- each station needs its own rig/POS/tent/generator.
-    barRigPerStation: 600,     // Mobile bar rig & signage
+    // barRigPerGuest is additional on top of the per-station rate, for a
+    // large footprint a station *count* can't express (e.g. "200 linear
+    // feet of bar" on a 60,000-guest festival) -- capped at $10,000,
+    // matching the "additional infrastructure" line on the reference
+    // invoice almost exactly.
+    barRigPerStation: 600, barRigPerGuest: 0.167, barRigMax: 10000,
     posPerStation: 100,        // Mobile POS / tap-to-pay station
     tentPerStation: 250,       // Pop-up tent / canopy
     generatorPerStation: 180,  // Generator (no power on-site)
