@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════
-// APP CONFIG — Big Daddy Catering
+// APP CONFIG — Daddy's Bar and Catering Service
 //
 // A demo/test deployment: mobile bar-service-only catering for large
 // events (weddings, corporate parties, festivals) -- no venue of their
@@ -46,9 +46,9 @@ const APP_CONFIG = (function () {
 
   // ── BRANDING ──────────────────────────────────────────────────────────
   const business = {
-    displayName: 'Big Daddy Catering',
-    legalName:   'Big Daddy Catering LLC',
-    address:     '450 W 31st St, Suite 4B, New York, NY 10001', // mailing/legal address -- the crew travels to you
+    displayName: "Daddy's", // shortened form, used almost everywhere -- see legalName for the full name
+    legalName:   "Daddy's Bar and Catering Service",
+    address:     '1053 Metropolitan Avenue, #1227, Brooklyn, NY 11211', // mailing/legal address -- the crew travels to you
     bookingEmail: 'bookings@bigdaddy.rocks',
     notifyEmail:  'lucas@cruzctrl.nyc',
     website:      'bigdaddy.rocks',
@@ -61,7 +61,7 @@ const APP_CONFIG = (function () {
   // ── PAYMENT INSTRUCTIONS ────────────────────────────────────────────────
   const payment = {
     zelleVenmoHandle: 'bigdaddy@bigdaddy.rocks',
-    checkPayableTo:   'Big Daddy Catering LLC',
+    checkPayableTo:   "Daddy's Bar and Catering Service",
     ach:  { bank: 'REPLACE_ME_BANK', routing: '000000000', account: '000000000' },
     wire: { bank: 'REPLACE_ME_BANK', routing: '000000000', account: '000000000' },
     cardSurchargePct: 3.5,
@@ -72,7 +72,7 @@ const APP_CONFIG = (function () {
 
   // ── GOOGLE DRIVE ──────────────────────────────────────────────────────
   const drive = {
-    parentFolder: 'Big Daddy Files',
+    parentFolder: "Daddy's Files",
     teamFolder:   'Team Only',
     clientFolder: 'Client-Facing',
   };
