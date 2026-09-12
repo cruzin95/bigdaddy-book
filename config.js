@@ -68,7 +68,7 @@ const APP_CONFIG = (function () {
   };
 
   // ── GOOGLE APPS SCRIPT WEBHOOK ────────────────────────────────────────
-  const webhookUrl = 'https://script.google.com/macros/s/AKfycbyt115YJ3MjYV2p-6N7j3alRO00r8Xt6Y1L9BhDLteyHA8y_LzwuP0y1E2xavVzbJWjdA/exec';
+  const webhookUrl = 'https://script.google.com/macros/s/AKfycbwaPQq9_Tgq5j90h9T7bwFiEM3H_7RsRcwUUM6PZc0wCJEm1oI6SJNk8UekqQ9cX10Nhg/exec';
 
   // ── GOOGLE DRIVE ──────────────────────────────────────────────────────
   const drive = {
