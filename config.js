@@ -265,7 +265,7 @@ const APP_CONFIG = (function () {
     'lastActivityAt', 'lastAutoDraftAt', 'eventTitle',
     'eventRating', 'internalNotes', 'problemClient',
     'quotedBy', 'contractedBy', 'invoicedBy',
-    'tours', 'contractFileId',
+    'meetings', 'contractFileId',
   ];
 
   // ── PUBLIC INTAKE FORM LAYOUT ─────────────────────────────────────────
