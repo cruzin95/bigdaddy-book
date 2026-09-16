@@ -33,7 +33,7 @@ const APP_CONFIG = (function () {
 
   // ── GOOGLE INFRASTRUCTURE ────────────────────────────────────────────
   const google = {
-    clientId:   '491500018044-oda56uc6588istd9hp1h61l1j6trk5n0.apps.googleusercontent.com',
+    clientId:   '208218110418-qf6dglipglnifele9ts87i4j8e7ma2c1.apps.googleusercontent.com',
     sheetId:    '18Vzg5GVMHraU1JfLmeaxGthqMBnO6Tg1eSQsfJBoB5c',
     calendarId: 'lucas@daddyscatering.co',
   };
