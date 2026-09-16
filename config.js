@@ -15,8 +15,8 @@
 //
 // google.* and webhookUrl are wired up to the real deployment. payment.ach
 // and payment.wire are still placeholders -- see docs/IMPLEMENTATION-GUIDE.md.
-// access.adminEmail / google.calendarId / business.notifyEmail are
-// temporarily lucas@cruzctrl.nyc until Workspace exists for daddyscatering.co.
+// access.adminEmail / google.calendarId / business.notifyEmail now point at
+// lucas@daddyscatering.co, the real Workspace account the Sheet lives under.
 //
 // ⚠️ LEGAL: the generated contract in portal.html is a *template*, not
 // reviewed by a lawyer, and alcohol service carries real, state-specific
@@ -35,12 +35,12 @@ const APP_CONFIG = (function () {
   const google = {
     clientId:   '491500018044-oda56uc6588istd9hp1h61l1j6trk5n0.apps.googleusercontent.com',
     sheetId:    '18Vzg5GVMHraU1JfLmeaxGthqMBnO6Tg1eSQsfJBoB5c',
-    calendarId: 'lucas@cruzctrl.nyc',
+    calendarId: 'lucas@daddyscatering.co',
   };
 
   // ── ACCESS CONTROL ───────────────────────────────────────────────────
   const access = {
-    adminEmail:    'lucas@cruzctrl.nyc',
+    adminEmail:    'lucas@daddyscatering.co',
     allowedDomain: 'daddyscatering.co',
   };
 
@@ -50,7 +50,7 @@ const APP_CONFIG = (function () {
     legalName:   "Daddy's Bar and Catering Service",
     address:     '1053 Metropolitan Avenue, #1227, Brooklyn, NY 11211', // mailing/legal address -- the crew travels to you
     bookingEmail: 'bookings@daddyscatering.co',
-    notifyEmail:  'lucas@cruzctrl.nyc',
+    notifyEmail:  'lucas@daddyscatering.co',
     website:      'daddyscatering.co',
     publicFormUrl: 'https://book.bigdaddy.rocks/', // the inquiry form lives in its own repo on its own subdomain -- see the hub's "+ Inquiry form" link
     timezone:    'America/New_York',
