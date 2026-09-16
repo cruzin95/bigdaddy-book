@@ -16,7 +16,7 @@
 // google.* and webhookUrl are wired up to the real deployment. payment.ach
 // and payment.wire are still placeholders -- see docs/IMPLEMENTATION-GUIDE.md.
 // access.adminEmail / google.calendarId / business.notifyEmail are
-// temporarily lucas@cruzctrl.nyc until Workspace exists for bigdaddy.rocks.
+// temporarily lucas@cruzctrl.nyc until Workspace exists for daddyscatering.co.
 //
 // ⚠️ LEGAL: the generated contract in portal.html is a *template*, not
 // reviewed by a lawyer, and alcohol service carries real, state-specific
@@ -27,21 +27,21 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.3.1';
 
 const APP_CONFIG = (function () {
 
   // ── GOOGLE INFRASTRUCTURE ────────────────────────────────────────────
   const google = {
     clientId:   '491500018044-oda56uc6588istd9hp1h61l1j6trk5n0.apps.googleusercontent.com',
-    sheetId:    '1ponf5hsjX5vuntdH3Tkq_y1xUGQrXZxhjOuZuuGMjgI',
+    sheetId:    '18Vzg5GVMHraU1JfLmeaxGthqMBnO6Tg1eSQsfJBoB5c',
     calendarId: 'lucas@cruzctrl.nyc',
   };
 
   // ── ACCESS CONTROL ───────────────────────────────────────────────────
   const access = {
     adminEmail:    'lucas@cruzctrl.nyc',
-    allowedDomain: 'bigdaddy.rocks',
+    allowedDomain: 'daddyscatering.co',
   };
 
   // ── BRANDING ──────────────────────────────────────────────────────────
@@ -49,9 +49,9 @@ const APP_CONFIG = (function () {
     displayName: "Daddy's", // shortened form, used almost everywhere -- see legalName for the full name
     legalName:   "Daddy's Bar and Catering Service",
     address:     '1053 Metropolitan Avenue, #1227, Brooklyn, NY 11211', // mailing/legal address -- the crew travels to you
-    bookingEmail: 'bookings@bigdaddy.rocks',
+    bookingEmail: 'bookings@daddyscatering.co',
     notifyEmail:  'lucas@cruzctrl.nyc',
-    website:      'bigdaddy.rocks',
+    website:      'daddyscatering.co',
     publicFormUrl: 'https://book.bigdaddy.rocks/', // the inquiry form lives in its own repo on its own subdomain -- see the hub's "+ Inquiry form" link
     timezone:    'America/New_York',
     phone:        '(917) 555-0199',
@@ -68,7 +68,7 @@ const APP_CONFIG = (function () {
   };
 
   // ── GOOGLE APPS SCRIPT WEBHOOK ────────────────────────────────────────
-  const webhookUrl = 'https://script.google.com/macros/s/AKfycbwaPQq9_Tgq5j90h9T7bwFiEM3H_7RsRcwUUM6PZc0wCJEm1oI6SJNk8UekqQ9cX10Nhg/exec';
+  const webhookUrl = 'https://script.google.com/macros/s/AKfycby9FJvNzcK6VXIQMF_fCIOofjCYvy4EXoR0pR_FcK2NHh-41N-_MnHh6m_HClelxVh24A/exec';
 
   // ── GOOGLE DRIVE ──────────────────────────────────────────────────────
   const drive = {
