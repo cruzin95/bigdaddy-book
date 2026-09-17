@@ -445,6 +445,12 @@ function buildPayload(){
       } else {
         payload[ctrl.writesTo] = val;
       }
+    } else if(ctrl.kind === 'date-flex'){
+      // Disabled (the "still deciding" checkbox was checked) means no date
+      // was ever meant to be sent, even if one was picked before the
+      // checkbox got ticked.
+      const input = document.getElementById(ctrl.id);
+      payload[ctrl.writesTo] = input.disabled ? '' : (input.value || '');
     }
   });
 
