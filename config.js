@@ -13,8 +13,9 @@
 // ai-notes/ARCHITECTURE-AND-PRINCIPLES.md's "Compartmentalized pricing
 // model" section and KNOWN-GAPS.md for why.
 //
-// google.* and webhookUrl are wired up to the real deployment. payment.ach
-// and payment.wire are still placeholders -- see docs/IMPLEMENTATION-GUIDE.md.
+// google.* and webhookUrl are wired up to the real deployment. Payment
+// instructions live in config.payment.js (loaded only by portal.html); its
+// ACH/wire values are still placeholders -- see docs/IMPLEMENTATION-GUIDE.md.
 // access.adminEmail / google.calendarId / business.notifyEmail now point at
 // lucas@daddyscatering.co, the real Workspace account the Sheet lives under.
 //
@@ -27,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '1.3.4';
+const APP_VERSION = '2.0.0';
 
 const APP_CONFIG = (function () {
 
@@ -56,15 +57,6 @@ const APP_CONFIG = (function () {
     timezone:    'America/New_York',
     phone:        '(917) 555-0199',
     senderName:   'James Zinkand',
-  };
-
-  // ── PAYMENT INSTRUCTIONS ────────────────────────────────────────────────
-  const payment = {
-    zelleVenmoHandle: 'bigdaddy@bigdaddy.rocks',
-    checkPayableTo:   "Daddy's Bar and Catering Service",
-    ach:  { bank: 'REPLACE_ME_BANK', routing: '000000000', account: '000000000' },
-    wire: { bank: 'REPLACE_ME_BANK', routing: '000000000', account: '000000000' },
-    cardSurchargePct: 3.5,
   };
 
   // ── GOOGLE APPS SCRIPT WEBHOOK ────────────────────────────────────────
@@ -382,7 +374,7 @@ const APP_CONFIG = (function () {
     return (str || '').replace(/\{business\}/g, business.displayName);
   }
 
-  const configRoot = { google, access, business, payment, webhookUrl, drive, sheetTabs, theme, pricing, storagePrefix, oauthScopes };
+  const configRoot = { google, access, business, webhookUrl, drive, sheetTabs, theme, pricing, storagePrefix, oauthScopes };
   function resolvePath(path) {
     return path.split('.').reduce((o, k) => (o && o[k] != null) ? o[k] : '', configRoot);
   }
@@ -405,7 +397,7 @@ const APP_CONFIG = (function () {
   }
 
   return {
-    google, access, business, payment, webhookUrl, drive, sheetTabs, theme, pricing, scaling, storagePrefix, oauthScopes,
+    google, access, business, webhookUrl, drive, sheetTabs, theme, pricing, scaling, storagePrefix, oauthScopes,
     stages, intakeFields, hubColumns, intakeForm,
     buildColumnMap, totalColumns, colLetter, lastColumnLetter, k, withBusinessName, applyBranding,
   };

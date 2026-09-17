@@ -475,14 +475,29 @@ form.addEventListener('submit', async (e) => {
   submitBtn.textContent = 'Sending…';
   try{
     const payload = buildPayload();
-    if(!APP_CONFIG.webhookUrl || APP_CONFIG.webhookUrl === 'YOUR_APPS_SCRIPT_WEB_APP_URL'){
+    // Only an empty URL is refused up front. A placeholder URL (the shipped
+    // config.example.js's REPLACE_ME) is deliberately let through: in
+    // preview mode the Service Worker answers it locally, and against the
+    // real network the reply check below turns it into a visible error
+    // rather than a false "Got it".
+    if(!APP_CONFIG.webhookUrl){
       throw new Error('Form is not yet connected to the inquiry sheet (config.js webhookUrl not configured).');
     }
-    await fetch(APP_CONFIG.webhookUrl, {
+    const resp = await fetch(APP_CONFIG.webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight against Apps Script
       body: JSON.stringify(payload),
     });
+    // Code.gs answers HTTP 200 even when it failed, with {status:'error',
+    // message} in the body -- the reply has to be read, not just awaited,
+    // or a broken deployment shows the customer "Got it" while nothing was
+    // written. A body that isn't JSON at all (an unexpected proxy page)
+    // can't be judged either way and is left as success rather than
+    // alarming people over a submission that most likely did land.
+    if(!resp.ok) throw new Error('The inquiry service responded with an error (' + resp.status + ').');
+    let reply = null;
+    try{ reply = await resp.json(); }catch(e){ /* not JSON -- see above */ }
+    if(reply && reply.status === 'error') throw new Error(reply.message || 'The inquiry could not be saved.');
     document.getElementById('formView').classList.add('hidden');
     document.getElementById('successView').classList.add('show');
     window.scrollTo({top:0, behavior:'smooth'});
