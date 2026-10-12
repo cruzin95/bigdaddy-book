@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.0.4';
+const APP_VERSION = '2.0.5';
 
 const APP_CONFIG = (function () {
 
@@ -388,6 +388,10 @@ const APP_CONFIG = (function () {
     successBody: "Thanks for reaching out. If there's a fit, we'll be in touch by phone or email.",
     submitLabel: 'Send it in',
     submitNote: "We'll reach out by phone or email if there's a fit.",
+    // Shown instead of the form when the script behind it isn't ready
+    // (see checkWebhookIsReady in apply.html).
+    closedTitle: "Applications aren't open just yet.",
+    closedBody: "This form isn't switched on yet. Check back soon, or email us and we'll get you sorted.",
     sections: [
       {
         key: 'main',

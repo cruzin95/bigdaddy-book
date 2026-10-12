@@ -71,6 +71,7 @@ textarea.inp{resize:vertical;min-height:80px;line-height:1.55}
 /* ---- success state ---- */
 .success{display:none;text-align:center;padding:70px 20px}
 .success.show{display:block}
+#closedView .check{font-size:20px;letter-spacing:.1em}
 .success .check{width:52px;height:52px;border-radius:50%;background:var(--amber-soft);border:1px solid var(--amber-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 22px;font-size:22px;color:var(--amber)}
 .success h1{font-family:var(--display);font-size:1.8rem;letter-spacing:.03em;color:var(--ink);margin-bottom:10px}
 .success p{font-size:.92rem;color:var(--muted);line-height:1.6;max-width:38ch;margin:0 auto}
@@ -99,6 +100,13 @@ textarea.inp{resize:vertical;min-height:80px;line-height:1.55}
         <div class="submit-note" id="submitNote"></div>
       </div>
     </form>
+  </div>
+
+  <div class="success" id="closedView">
+    <div class="check">&#8943;</div>
+    <h1 id="closedTitle"></h1>
+    <p id="closedBody"></p>
+    <div class="direct">Questions? <a id="closedEmail" href="#"></a></div>
   </div>
 
   <div class="success" id="successView">
@@ -145,6 +153,10 @@ document.getElementById('successTitle').textContent = F.successTitle;
 document.getElementById('successBody').textContent = F.successBody;
 document.getElementById('directEmail').textContent = APP_CONFIG.business.bookingEmail;
 document.getElementById('directEmail').href = 'mailto:' + APP_CONFIG.business.bookingEmail;
+document.getElementById('closedTitle').textContent = F.closedTitle;
+document.getElementById('closedBody').textContent = F.closedBody;
+document.getElementById('closedEmail').textContent = APP_CONFIG.business.bookingEmail;
+document.getElementById('closedEmail').href = 'mailto:' + APP_CONFIG.business.bookingEmail;
 
 // Basic theming: overrides the CSS defaults above with config.js's theme
 // tokens so a reskin's brand color shows up here too, deriving the same
@@ -449,6 +461,10 @@ form.addEventListener('submit', async (e) => {
     let reply = null;
     try{ reply = await resp.json(); }catch(e){ /* not JSON: can't judge, treat as sent */ }
     if(reply && reply.status === 'error') throw new Error(reply.message || 'Your application could not be saved.');
+    // Only the inquiry path replies with a refId. Seeing one means an
+    // out-of-date script took this as an inquiry, so it was NOT saved as an
+    // application -- say so rather than show "Got it".
+    if(reply && reply.refId) throw new Error('This form is not fully set up yet, so your application was not saved. Please email ' + APP_CONFIG.business.bookingEmail + ' and we will sort it out.');
     document.getElementById('formView').classList.add('hidden');
     document.getElementById('successView').classList.add('show');
     window.scrollTo({top:0, behavior:'smooth'});
@@ -459,6 +475,39 @@ form.addEventListener('submit', async (e) => {
     submitBtn.textContent = F.submitLabel;
   }
 });
+
+/* ── is the script behind this form new enough to take it? ────────────
+   The webhook is one URL for everything, and a deployment that predates
+   the `team_application` route would handle an application as an
+   inquiry: a junk card on the board, and the resume silently dropped. So
+   before anyone fills this in, ask the script what it understands (see
+   doGet() in Code.gs) and keep the form shut unless it says
+   'team_application'.
+     - a readable answer that doesn't list it (including a Google error
+       page instead of JSON) -> closed: nothing real can come of a submit
+     - no answer at all (offline, blocked) -> left open: that says
+       nothing about the script, and a real failure still surfaces when
+       the form is sent
+   Failing open on "can't tell" is deliberate -- a flaky connection must
+   not lock out an applicant who'd otherwise get through. */
+(async function checkWebhookIsReady(){
+  if(!APP_CONFIG.webhookUrl) return;
+  let text;
+  try{
+    const resp = await fetch(APP_CONFIG.webhookUrl, { cache: 'no-store' });
+    text = await resp.text();
+  }catch(e){ return; }
+  let ready = false;
+  try{
+    const reply = JSON.parse(text);
+    ready = !!reply && reply.status === 'ok'
+      && Array.isArray(reply.features) && reply.features.indexOf('team_application') >= 0;
+  }catch(e){ /* a readable but non-JSON answer: not our script's reply */ }
+  if(!ready){
+    document.getElementById('formView').classList.add('hidden');
+    document.getElementById('closedView').classList.add('show');
+  }
+})();
 
 /* ── tell the embedding page how tall we are ──────────────────────────
    daddyscatering.co embeds this in an iframe (work-with-us.html) and
