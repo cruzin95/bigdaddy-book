@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.0.5';
+const APP_VERSION = '2.0.6';
 
 const APP_CONFIG = (function () {
 
@@ -60,7 +60,7 @@ const APP_CONFIG = (function () {
   };
 
   // ── GOOGLE APPS SCRIPT WEBHOOK ────────────────────────────────────────
-  const webhookUrl = 'https://script.google.com/macros/s/AKfycby9FJvNzcK6VXIQMF_fCIOofjCYvy4EXoR0pR_FcK2NHh-41N-_MnHh6m_HClelxVh24A/exec';
+  const webhookUrl = 'https://script.google.com/macros/s/AKfycbzaPPTrBtl3_IMPjBGPBjyvwbm2kfQuW8tXRq9vFeO21oPl3CdhptgwbmfX72kwGf2obg/exec';
 
   // ── GOOGLE DRIVE ──────────────────────────────────────────────────────
   const drive = {
