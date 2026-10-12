@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.0.3';
+const APP_VERSION = '2.0.4';
 
 const APP_CONFIG = (function () {
 
@@ -346,6 +346,80 @@ const APP_CONFIG = (function () {
     ],
   };
 
+  // ── TEAM APPLICATION FORM ("Work with us") ───────────────────────────
+  // Fork-only. A separate public form (apply.html) for people applying to
+  // join the crew. These never touch the Inquiries tab or the hub board:
+  // Code.gs routes `type: 'team_application'` payloads into their own
+  // spreadsheet in Drive (drive.parentFolder > drive.teamFolder), with
+  // uploaded files saved to folders beside it and linked from the row, so
+  // applicants' details don't sit in the file the whole hub reads.
+  // Config.gs mirrors applicationFields (id + label + order, plus which
+  // columns are uploaded files) -- change them in both files. Column order
+  // here is the spreadsheet's column order; the form's own order is the
+  // `controls` list below.
+  //
+  // `file: true` columns aren't typed answers: the form sends the upload as
+  // `{id}File` ({name, data}) and Code.gs stores a link to the saved file.
+  const applicationFields = [
+    { id: 'fullName',      label: 'Full Name' },
+    { id: 'phone',         label: 'Phone' },
+    { id: 'email',         label: 'Email' },
+    { id: 'area',          label: 'Area' },
+    { id: 'role',          label: 'Wants To' },
+    { id: 'bottleService', label: 'Bottle Service Experience' },
+    { id: 'availability',  label: 'Rough Availability' },
+    { id: 'lateNights',    label: 'Can Work Late Nights' },
+    { id: 'longShifts',    label: 'Open To 12+ Hour Shifts' },
+    { id: 'referredBy',    label: 'Referred By' },
+    { id: 'resume',        label: 'Resume',   file: true },
+    { id: 'headshot',      label: 'Headshot', file: true },
+  ];
+
+  // Same control kinds and renderer shape as intakeForm above; apply.html
+  // supports text/textarea/pills/pills-multi/file (no date-flex, no "more"
+  // section). A `file` control takes `accept`, `maxMB`, and `photo: true`
+  // to have the browser downscale it to a ~1200px JPEG before sending.
+  // Code.gs enforces its own size/type limits regardless of these.
+  const applicationForm = {
+    heroTitle: '{business}',
+    heroSubtitle: 'Work With Us',
+    heroPitch: "Want to join the crew? Tell us who you are and when you're around, and we'll reach out if there's a spot that fits.",
+    successTitle: "Got it.",
+    successBody: "Thanks for reaching out. If there's a fit, we'll be in touch by phone or email.",
+    submitLabel: 'Send it in',
+    submitNote: "We'll reach out by phone or email if there's a fit.",
+    sections: [
+      {
+        key: 'main',
+        controls: [
+          { kind: 'text', id: 'fullName', label: 'Full name', placeholder: 'Jamie Rivera', autocomplete: 'name', required: true, writesTo: 'fullName', errorMsg: 'Let us know your name.' },
+          { kind: 'text', id: 'phone', label: 'Phone', htmlType: 'tel', placeholder: '(555) 123-4567', autocomplete: 'tel', required: true, validate: 'phone', writesTo: 'phone', errorMsg: 'A phone number we can reach you at.' },
+          { kind: 'text', id: 'email', label: 'Email', htmlType: 'email', placeholder: 'jamie@example.com', autocomplete: 'email', required: true, validate: 'email', writesTo: 'email', errorMsg: 'A valid email helps us get back to you.' },
+          { kind: 'text', id: 'area', label: 'What area do you live in?', placeholder: 'Neighborhood or borough, e.g. Bushwick', required: true, writesTo: 'area', errorMsg: 'Let us know roughly where you live.' },
+          { kind: 'pills', id: 'role', label: 'What do you want to do?', asSection: true, required: true, errorMsg: 'Pick one.', writesTo: 'role', options: [
+            { value: 'Bartend', label: 'Bartend' }, { value: 'Barback', label: 'Barback' }, { value: 'Either / both', label: 'Either or both' },
+          ]},
+          { kind: 'pills', id: 'bottleService', label: 'Any bottle service experience?', asSection: true, required: true, errorMsg: 'Pick one.', writesTo: 'bottleService', options: [
+            { value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' },
+          ]},
+          { kind: 'pills-multi', id: 'availability', label: 'Rough availability', asSection: true, required: true, hint: 'Tap everything that fits. We can sort out exact days later.', errorMsg: 'Pick at least one.', writesTo: 'availability', joinWith: ', ', options: [
+            { value: 'Weekdays', label: 'Weekdays' }, { value: 'Weeknights', label: 'Weeknights' },
+            { value: 'Weekends', label: 'Weekends' }, { value: 'Holidays', label: 'Holidays' },
+          ]},
+          { kind: 'pills', id: 'lateNights', label: 'Can you work late nights?', asSection: true, required: true, hint: 'Events can run well past midnight.', errorMsg: 'Pick one.', writesTo: 'lateNights', options: [
+            { value: 'Yes', label: 'Yes' }, { value: 'Sometimes', label: 'Sometimes' }, { value: 'No', label: 'Not really' },
+          ]},
+          { kind: 'pills', id: 'longShifts', label: 'Open to long shifts (12+ hours)?', asSection: true, required: true, errorMsg: 'Pick one.', writesTo: 'longShifts', options: [
+            { value: 'Yes', label: 'Yes' }, { value: 'Sometimes', label: 'Sometimes' }, { value: 'No', label: 'Not really' },
+          ]},
+          { kind: 'text', id: 'referredBy', label: 'Who referred you?', optional: true, placeholder: 'Name, if anyone', writesTo: 'referredBy' },
+          { kind: 'file', id: 'resume', label: 'Resume', required: true, accept: '.pdf,.doc,.docx,.rtf,.jpg,.jpeg,.png', maxMB: 5, hint: 'PDF, Word document, or a clear photo of a paper copy. Up to 5 MB.', errorMsg: 'Attach your resume.', writesTo: 'resume' },
+          { kind: 'file', id: 'headshot', label: 'Headshot', optional: true, accept: '.jpg,.jpeg,.png', photo: true, maxMB: 15, hint: 'A clear photo of your face. JPG or PNG.', writesTo: 'headshot' },
+        ],
+      },
+    ],
+  };
+
   // ── COMPUTED: column index map ───────────────────────────────────────
   function buildColumnMap() {
     const COL = { timestamp: 0, refId: 1 };
@@ -398,7 +472,7 @@ const APP_CONFIG = (function () {
 
   return {
     google, access, business, webhookUrl, drive, sheetTabs, theme, pricing, scaling, storagePrefix, oauthScopes,
-    stages, intakeFields, hubColumns, intakeForm,
+    stages, intakeFields, hubColumns, intakeForm, applicationFields, applicationForm,
     buildColumnMap, totalColumns, colLetter, lastColumnLetter, k, withBusinessName, applyBranding,
   };
 })();

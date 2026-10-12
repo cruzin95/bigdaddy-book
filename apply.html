@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title id="pageTitle">Work With Us</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0d0a; --surface:#161410; --surface-2:#1d1a14; --surface-3:#232019;
+  --line:#2b271f; --line-2:#3a352a;
+  --ink:#f2ede1; --muted:#9a9080; --muted-2:#6b6353;
+  --amber:#eaa23a; --amber-dim:#a87524; --amber-soft:rgba(234,162,58,.12);
+  --red:#d3765b; --red-soft:rgba(211,118,91,.14);
+  --display:'Bebas Neue',sans-serif;
+  --mono:'Space Mono',monospace;
+  --body:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+::selection{background:var(--amber);color:#0e0d0a}
+
+.wrap{max-width:600px;margin:0 auto;padding:0 20px 80px}
+
+/* ---- header ---- */
+.hero{padding:40px 0 28px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero .mark{width:min(200px,55%);height:auto;display:block}
+.hero .sub{font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-2);margin-top:6px}
+.hero .pitch{margin-top:16px;font-size:.95rem;color:var(--muted);line-height:1.6;max-width:46ch}
+
+/* ---- sections ---- */
+.sec{margin-bottom:26px}
+.sec-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.sec-label::before{content:"// ";color:var(--amber-dim)}
+.hint{font-size:.78rem;color:var(--muted-2);margin-top:6px;line-height:1.5}
+
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.85rem;color:var(--ink);margin-bottom:7px;font-weight:500}
+.field label .opt{font-family:var(--mono);font-size:.68rem;color:var(--muted-2);text-transform:uppercase;letter-spacing:.05em;font-weight:400;margin-left:6px}
+.inp{width:100%;background:var(--surface-2);border:1px solid var(--line-2);border-radius:8px;padding:13px 14px;font-size:.95rem;color:var(--ink);font-family:var(--body);transition:.14s}
+.inp::placeholder{color:var(--muted-2)}
+.inp:focus{outline:none;border-color:var(--amber-dim);background:var(--surface-3)}
+.inp[type="file"]{padding:9px 10px;cursor:pointer;color:var(--muted)}
+.inp[type="file"]::file-selector-button{font-family:var(--body);font-size:.84rem;font-weight:600;background:var(--surface-3);color:var(--ink);border:1px solid var(--line-2);border-radius:6px;padding:8px 12px;margin-right:12px;cursor:pointer;transition:.14s}
+.inp[type="file"]:hover::file-selector-button{border-color:var(--amber-dim)}
+textarea.inp{resize:vertical;min-height:80px;line-height:1.55}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.row2{grid-template-columns:1fr}}
+
+/* ---- pill choices ---- */
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-family:var(--body);font-size:.86rem;padding:11px 16px;border-radius:100px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);cursor:pointer;transition:.14s;user-select:none;text-align:center}
+.pill:hover{border-color:var(--amber-dim)}
+.pill.active{background:var(--amber);border-color:var(--amber);color:#140f08;font-weight:600}
+.pill-err .pills{outline:1px solid var(--red);outline-offset:6px;border-radius:12px}
+
+/* ---- submit ---- */
+.submit-row{margin-top:32px}
+.submit-btn{width:100%;background:var(--amber);border:1px solid var(--amber);color:#140f08;font-weight:700;font-family:var(--body);font-size:1rem;padding:16px;border-radius:8px;cursor:pointer;transition:.14s}
+.submit-btn:hover{background:#f4b04c;border-color:#f4b04c}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.submit-note{text-align:center;font-size:.75rem;color:var(--muted-2);margin-top:12px;font-family:var(--mono)}
+.err-msg{font-size:.78rem;color:var(--red);margin-top:10px;display:none}
+.err-msg.show{display:block}
+.form-err{background:var(--red-soft);border:1px solid rgba(211,118,91,.35);color:var(--red);border-radius:8px;padding:12px 14px;font-size:.85rem;margin-bottom:20px;display:none}
+.form-err.show{display:block}
+
+/* ---- success state ---- */
+.success{display:none;text-align:center;padding:70px 20px}
+.success.show{display:block}
+.success .check{width:52px;height:52px;border-radius:50%;background:var(--amber-soft);border:1px solid var(--amber-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 22px;font-size:22px;color:var(--amber)}
+.success h1{font-family:var(--display);font-size:1.8rem;letter-spacing:.03em;color:var(--ink);margin-bottom:10px}
+.success p{font-size:.92rem;color:var(--muted);line-height:1.6;max-width:38ch;margin:0 auto}
+.success .direct{margin-top:22px;font-family:var(--mono);font-size:.8rem;color:var(--muted-2)}
+.success .direct a{color:var(--amber);text-decoration:none}
+
+.form-view.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="hero">
+    <img class="mark" id="heroMark" src="logo-dark.png?v=2.0.3" alt="">
+    <div class="sub" id="heroSub"></div>
+    <div class="pitch" id="heroPitch"></div>
+  </div>
+
+  <div class="form-view" id="formView">
+    <div class="form-err" id="formErr"></div>
+    <form id="applyForm" novalidate>
+      <div id="formSections"></div>
+      <div class="submit-row">
+        <button type="submit" class="submit-btn" id="submitBtn"></button>
+        <div class="submit-note" id="submitNote"></div>
+      </div>
+    </form>
+  </div>
+
+  <div class="success" id="successView">
+    <div class="check">&#10003;</div>
+    <h1 id="successTitle"></h1>
+    <p id="successBody"></p>
+    <div class="direct">Need to reach us directly? <a id="directEmail" href="#"></a></div>
+  </div>
+
+</div>
+
+<script src="config.js"></script>
+<script>
+/* ── "WORK WITH US" FORM ───────────────────────────────────────────────
+   Fork-only sibling of inquiry.html: same look, same control renderer
+   (trimmed to the kinds this form uses: text, textarea, pills,
+   pills-multi, plus a `file` kind inquiry.html doesn't have), driven by
+   APP_CONFIG.applicationForm in config.js.
+   What differs from inquiry.html, so a fix to either can be checked
+   against the other:
+     - payload is { type: 'team_application', ...applicationFields };
+       Code.gs routes that type to its own spreadsheet in Drive, so there
+       is no refId and no client-side timestamp (the server stamps it)
+     - file controls: the upload is sent base64-encoded inside the same
+       JSON body as `{id}File: {name, data}`; photo controls are
+       downscaled to a ~1200px JPEG first. Code.gs re-checks type and size
+       on its own -- these client checks are only for a friendly message
+     - validators: email (as inquiry) plus phone (7+ digits)
+     - no "tell us more" section, no date-flex, no showIf
+     - posts its own height to the parent page, so the site's embed can
+       size the iframe to fit instead of a fixed height
+   ────────────────────────────────────────────────────────────────────── */
+
+const F = APP_CONFIG.applicationForm;
+const T = APP_CONFIG.withBusinessName;
+
+document.title = T(F.heroTitle) + ': ' + F.heroSubtitle;
+document.getElementById('heroMark').alt = T(F.heroTitle);
+document.getElementById('heroSub').textContent = F.heroSubtitle;
+document.getElementById('heroPitch').textContent = F.heroPitch;
+document.getElementById('submitBtn').textContent = F.submitLabel;
+document.getElementById('submitNote').textContent = F.submitNote;
+document.getElementById('successTitle').textContent = F.successTitle;
+document.getElementById('successBody').textContent = F.successBody;
+document.getElementById('directEmail').textContent = APP_CONFIG.business.bookingEmail;
+document.getElementById('directEmail').href = 'mailto:' + APP_CONFIG.business.bookingEmail;
+
+// Basic theming: overrides the CSS defaults above with config.js's theme
+// tokens so a reskin's brand color shows up here too, deriving the same
+// elevated-surface/border/text steps shared.js's applyTheme() computes for
+// the signed-in hub pages (same math, copied rather than imported -- this
+// is a standalone public form with no sign-in, so it doesn't load
+// shared.js). Without deriving --surface-2/3 and --line/-2, input fields
+// (which use --surface-2) would stay stuck at this stylesheet's hardcoded
+// dark default even on a light theme.
+(function applyBasicTheme(){
+  const th = APP_CONFIG.theme;
+  const r = document.documentElement.style;
+  function hexToHsl(hex){
+    hex=(hex||'').replace('#','');
+    if(hex.length!==6) return [0,0,50];
+    const rr=parseInt(hex.substr(0,2),16)/255, gg=parseInt(hex.substr(2,2),16)/255, bb=parseInt(hex.substr(4,2),16)/255;
+    const max=Math.max(rr,gg,bb), min=Math.min(rr,gg,bb); let h,s,l=(max+min)/2;
+    if(max===min){ h=s=0; } else {
+      const d=max-min; s=l>0.5?d/(2-max-min):d/(max+min);
+      if(max===rr) h=(gg-bb)/d+(gg<bb?6:0); else if(max===gg) h=(bb-rr)/d+2; else h=(rr-gg)/d+4;
+      h/=6;
+    }
+    return [h*360, s*100, l*100];
+  }
+  function hslToHex(h,s,l){
+    h/=360; s/=100; l/=100; let rr,gg,bb;
+    if(s===0){ rr=gg=bb=l; } else {
+      const hue2rgb=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
+      const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+      rr=hue2rgb(p,q,h+1/3); gg=hue2rgb(p,q,h); bb=hue2rgb(p,q,h-1/3);
+    }
+    const toHex=x=>{ const v=Math.round(Math.max(0,Math.min(1,x))*255).toString(16); return v.length===1?'0'+v:v; };
+    return '#'+toHex(rr)+toHex(gg)+toHex(bb);
+  }
+  function adjustL(hex,deltaPct){ const [h,s,l]=hexToHsl(hex); return hslToHex(h,s,Math.max(0,Math.min(100,l+deltaPct))); }
+  function hexToRgba(hex,alpha){
+    hex=(hex||'').replace('#',''); if(hex.length!==6) return `rgba(234,162,58,${alpha})`;
+    const rr=parseInt(hex.substr(0,2),16), gg=parseInt(hex.substr(2,2),16), bb=parseInt(hex.substr(4,2),16);
+    return `rgba(${rr},${gg},${bb},${alpha})`;
+  }
+  if(th.accent){
+    r.setProperty('--amber', th.accent);
+    r.setProperty('--amber-dim', adjustL(th.accent,-25));
+    r.setProperty('--amber-soft', hexToRgba(th.accent,0.12));
+  }
+  if(th.bg) r.setProperty('--bg', th.bg);
+  if(th.card){
+    r.setProperty('--surface', th.card);
+    r.setProperty('--surface-2', adjustL(th.card,4));
+    r.setProperty('--surface-3', adjustL(th.card,9));
+    r.setProperty('--line', adjustL(th.card,14));
+    r.setProperty('--line-2', adjustL(th.card,22));
+  }
+  if(th.text){
+    r.setProperty('--ink', th.text);
+    r.setProperty('--ink2', adjustL(th.text,-10));
+  }
+  if(th.mutedText){
+    r.setProperty('--muted', th.mutedText);
+    r.setProperty('--muted-2', adjustL(th.mutedText,-20));
+  }
+})();
+
+/* ── pill (tap-choice) groups ───────────────────────────────────────── */
+const singleSelect = {};   // groupId -> selected value
+const multiSelect   = {};  // groupId -> Set of selected values
+
+function initPillGroup(id, multi){
+  const el = document.getElementById('pills-' + id);
+  if(!el) return;
+  if(multi) multiSelect[id] = new Set();
+  el.querySelectorAll('.pill').forEach(p => {
+    p.addEventListener('click', () => {
+      const val = p.dataset.val;
+      if(multi){
+        const set = multiSelect[id];
+        if(set.has(val)){ set.delete(val); p.classList.remove('active'); }
+        else { set.add(val); p.classList.add('active'); }
+      } else {
+        el.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+        p.classList.add('active');
+        singleSelect[id] = val;
+      }
+      clearFieldError(id);
+    });
+  });
+}
+
+/* ── render one control as HTML ─────────────────────────────────────── */
+function escHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s){ return escHtml(s); }
+function optTag(ctrl){ return ctrl.optional ? `<span class="opt">optional</span>` : ''; }
+function hintHtml(ctrl){ return ctrl.hint ? `<div class="hint">${escHtml(ctrl.hint)}</div>` : ''; }
+function errHtml(ctrl){ return (ctrl.errorMsg || ctrl.kind === 'file') ? `<div class="err-msg" id="err-${ctrl.id}">${escHtml(ctrl.errorMsg || '')}</div>` : ''; }
+function pillsHtml(ctrl){
+  return `<div class="pills" id="pills-${ctrl.id}">` +
+    ctrl.options.map(o => `<div class="pill" data-val="${escAttr(o.value)}">${escHtml(o.label)}</div>`).join('') +
+    `</div>`;
+}
+
+function renderControl(ctrl){
+  const label = escHtml(T(ctrl.label));
+  let inner = '';
+  if(ctrl.kind === 'text'){
+    inner = `<input class="inp" type="${ctrl.htmlType||'text'}" id="${ctrl.id}" placeholder="${escAttr(ctrl.placeholder||'')}" ${ctrl.autocomplete?`autocomplete="${ctrl.autocomplete}"`:''}>`;
+  } else if(ctrl.kind === 'textarea'){
+    inner = `<textarea class="inp" id="${ctrl.id}" placeholder="${escAttr(ctrl.placeholder||'')}"></textarea>`;
+  } else if(ctrl.kind === 'pills' || ctrl.kind === 'pills-multi'){
+    inner = pillsHtml(ctrl);
+  } else if(ctrl.kind === 'file'){
+    inner = `<input class="inp" type="file" id="${ctrl.id}" accept="${escAttr(ctrl.accept||'')}">`;
+  }
+
+  if(ctrl.asSection){
+    return `<div class="sec" id="sec-${ctrl.id}">
+      <div class="sec-label">${label}</div>
+      ${inner}
+      ${hintHtml(ctrl)}
+      ${errHtml(ctrl)}
+    </div>`;
+  }
+  return `<div class="field" id="field-${ctrl.id}">
+    <label for="${ctrl.id}">${label} ${optTag(ctrl)}</label>
+    ${inner}
+    ${hintHtml(ctrl)}
+    ${errHtml(ctrl)}
+  </div>`;
+}
+
+const allControls = [];
+let sectionsHtml = '';
+F.sections.forEach(section => {
+  allControls.push(...section.controls);
+  sectionsHtml += `<div class="sec">${section.controls.map(renderControl).join('')}</div>`;
+});
+document.getElementById('formSections').innerHTML = sectionsHtml;
+
+allControls.forEach(ctrl => {
+  if(ctrl.kind === 'pills') initPillGroup(ctrl.id, false);
+  if(ctrl.kind === 'pills-multi') initPillGroup(ctrl.id, true);
+  if(ctrl.kind === 'file') document.getElementById(ctrl.id).addEventListener('change', () => clearFieldError(ctrl.id));
+});
+
+/* ── validation ──────────────────────────────────────────────────────── */
+const defaultErrMsg = {};   // controlId -> its configured errorMsg, restored after a custom message
+allControls.forEach(c => { defaultErrMsg[c.id] = c.errorMsg || ''; });
+function showFieldError(id, msg){
+  const err = document.getElementById('err-' + id);
+  if(err){ err.textContent = msg || defaultErrMsg[id] || ''; err.classList.add('show'); }
+  const sec = document.getElementById('sec-' + id);
+  if(sec) sec.classList.add('pill-err');
+}
+function clearFieldError(id){
+  const err = document.getElementById('err-' + id);
+  if(err) err.classList.remove('show');
+  const sec = document.getElementById('sec-' + id);
+  if(sec) sec.classList.remove('pill-err');
+}
+/* ── files ──────────────────────────────────────────────────────────── */
+const FILE_EXT_BY_MIME = {
+  'application/pdf': 'pdf', 'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+  'application/rtf': 'rtf', 'text/rtf': 'rtf', 'image/jpeg': 'jpg', 'image/png': 'png',
+};
+function fileExt(file){
+  const m = /\.([A-Za-z0-9]+)$/.exec(file.name || '');
+  return m ? m[1].toLowerCase() : (FILE_EXT_BY_MIME[file.type] || '');
+}
+function allowedExts(ctrl){
+  return (ctrl.accept || '').split(',').map(s => s.trim().replace(/^\./, '').toLowerCase()).filter(Boolean);
+}
+function readAsBase64(blob){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1] || '');
+    r.onerror = () => reject(new Error('We could not read that file. Try attaching it again.'));
+    r.readAsDataURL(blob);
+  });
+}
+// Phone photos are often 5-10 MB; a headshot only needs to be recognisable.
+// Longest side to maxSide, re-encoded as JPEG (transparency goes to white
+// rather than black).
+async function downscaleToJpeg(file, maxSide, quality){
+  const url = URL.createObjectURL(file);
+  try{
+    const img = new Image();
+    img.src = url;
+    try{ await img.decode(); }catch(e){ throw new Error('We could not read that photo. Try a JPG or PNG.'); }
+    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * scale));
+    const h = Math.max(1, Math.round(img.naturalHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const g = canvas.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, w, h);
+    g.drawImage(img, 0, 0, w, h);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+    if(!blob) throw new Error('We could not process that photo. Try a different one.');
+    return blob;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function isValidPhone(v){ return v.replace(/\D/g, '').length >= 7; }
+
+function validate(){
+  let ok = true;
+  allControls.forEach(ctrl => clearFieldError(ctrl.id));
+
+  allControls.forEach(ctrl => {
+    if(ctrl.kind === 'file'){
+      const file = document.getElementById(ctrl.id).files[0];
+      if(!file){ if(ctrl.required){ showFieldError(ctrl.id); ok = false; } return; }
+      const exts = allowedExts(ctrl);
+      if(exts.length && exts.indexOf(fileExt(file)) < 0){
+        showFieldError(ctrl.id, 'That file type is not accepted. Use ' + exts.map(e => e.toUpperCase()).join(', ') + '.');
+        ok = false;
+      } else if(file.size > ctrl.maxMB * 1048576){
+        showFieldError(ctrl.id, 'That file is over ' + ctrl.maxMB + ' MB. Try a smaller one.');
+        ok = false;
+      }
+      return;
+    }
+    if(!ctrl.required) return;
+    if(ctrl.kind === 'text' || ctrl.kind === 'textarea'){
+      const v = document.getElementById(ctrl.id).value.trim();
+      const bad = !v
+        || (ctrl.validate === 'email' && !isValidEmail(v))
+        || (ctrl.validate === 'phone' && !isValidPhone(v));
+      if(bad){ showFieldError(ctrl.id); ok = false; }
+    } else if(ctrl.kind === 'pills'){
+      if(!singleSelect[ctrl.id]){ showFieldError(ctrl.id); ok = false; }
+    } else if(ctrl.kind === 'pills-multi'){
+      if(!multiSelect[ctrl.id] || multiSelect[ctrl.id].size === 0){ showFieldError(ctrl.id); ok = false; }
+    }
+  });
+
+  return ok;
+}
+
+/* ── payload ─────────────────────────────────────────────────────────── */
+async function buildPayload(){
+  const payload = { type: 'team_application' };
+  APP_CONFIG.applicationFields.forEach(f => { if(!f.file) payload[f.id] = ''; });
+
+  for(const ctrl of allControls){
+    if(ctrl.kind === 'file'){
+      const file = document.getElementById(ctrl.id).files[0];
+      if(!file) continue;
+      let blob = file, name = file.name || ctrl.id;
+      if(ctrl.photo){
+        blob = await downscaleToJpeg(file, 1200, 0.85);
+        name = name.replace(/\.[^.]*$/, '') + '.jpg';
+      } else if(!/\.[A-Za-z0-9]+$/.test(name)){
+        name += '.' + fileExt(file);   // some Android pickers hand back no extension
+      }
+      payload[ctrl.writesTo + 'File'] = { name: name, data: await readAsBase64(blob) };
+    } else if(ctrl.kind === 'text' || ctrl.kind === 'textarea'){
+      payload[ctrl.writesTo] = document.getElementById(ctrl.id).value.trim();
+    } else if(ctrl.kind === 'pills-multi'){
+      const set = multiSelect[ctrl.id];
+      payload[ctrl.writesTo] = set && set.size ? [...set].join(ctrl.joinWith || ', ') : '';
+    } else if(ctrl.kind === 'pills'){
+      payload[ctrl.writesTo] = singleSelect[ctrl.id] || '';
+    }
+  }
+
+  return payload;
+}
+
+/* ── submit ──────────────────────────────────────────────────────────── */
+const form = document.getElementById('applyForm');
+const submitBtn = document.getElementById('submitBtn');
+const formErr = document.getElementById('formErr');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  formErr.classList.remove('show');
+  if(!validate()){
+    formErr.textContent = 'A few things need a look before we can send this.';
+    formErr.classList.add('show');
+    try{ formErr.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){}
+    return;
+  }
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending…';
+  try{
+    if(!APP_CONFIG.webhookUrl){
+      throw new Error('Form is not yet connected (config.js webhookUrl not configured).');
+    }
+    const resp = await fetch(APP_CONFIG.webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight against Apps Script
+      body: JSON.stringify(await buildPayload()),
+    });
+    // Same rule as inquiry.html: Code.gs answers HTTP 200 even on failure,
+    // with {status:'error', message} in the body, so the reply has to be
+    // read or a broken deployment would show the applicant "Got it".
+    if(!resp.ok) throw new Error('The service responded with an error (' + resp.status + ').');
+    let reply = null;
+    try{ reply = await resp.json(); }catch(e){ /* not JSON: can't judge, treat as sent */ }
+    if(reply && reply.status === 'error') throw new Error(reply.message || 'Your application could not be saved.');
+    document.getElementById('formView').classList.add('hidden');
+    document.getElementById('successView').classList.add('show');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }catch(err){
+    formErr.textContent = 'Something went wrong sending this: ' + err.message;
+    formErr.classList.add('show');
+    submitBtn.disabled = false;
+    submitBtn.textContent = F.submitLabel;
+  }
+});
+
+/* ── tell the embedding page how tall we are ──────────────────────────
+   daddyscatering.co embeds this in an iframe (work-with-us.html) and
+   resizes it from this message; the type name is the one booking.html
+   already listens for. Measures .wrap rather than the document so the
+   parent growing the iframe can never feed back into the number. */
+(function reportHeight(){
+  if(window.parent === window) return;
+  const wrap = document.querySelector('.wrap');
+  let last = 0;
+  function send(){
+    const h = Math.ceil(wrap.getBoundingClientRect().height);
+    if(h === last) return;
+    last = h;
+    window.parent.postMessage({ type: 'bigdaddy:height', height: h }, '*');
+  }
+  send();
+  window.addEventListener('load', send);
+  if('ResizeObserver' in window) new ResizeObserver(send).observe(wrap);
+})();
+</script>
+</body>
+</html>
