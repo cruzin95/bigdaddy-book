@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.0.6';
+const APP_VERSION = '2.0.7';
 
 const APP_CONFIG = (function () {
 
@@ -67,6 +67,10 @@ const APP_CONFIG = (function () {
     parentFolder: "Daddy's Files",
     teamFolder:   'Team Only',
     clientFolder: 'Client-Facing',
+    // Fork-only: the spreadsheet Code.gs files "Work with us" applications
+    // into (under teamFolder). applications.html finds it by this name.
+    // Must match Config.gs's APPLICATIONS_FILE_NAME.
+    applicationsFile: "Daddy's Team Applications",
   };
 
   // ── OAUTH SCOPES ──────────────────────────────────────────────────────
