@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 
 const APP_CONFIG = (function () {
 
@@ -433,6 +433,26 @@ const APP_CONFIG = (function () {
     ],
   };
 
+  // ── CREW ROSTER ──────────────────────────────────────────────────────
+  // Fork-only. One spreadsheet of everyone who works (or has worked) for
+  // the business, in drive.parentFolder > drive.teamFolder, created by the
+  // hub on first use. Written by roster.js only: accepting an applicant
+  // (applications.html) and imports (roster.html). Its columns live in
+  // roster.js; this is just names and the role list. Apps Script doesn't
+  // read it yet, so there's no Config.gs mirror until onboarding needs one.
+  const roster = {
+    fileName: "Daddy's Crew Roster",
+    tabs: { people: 'People', sources: 'Sources', review: 'Needs Review' },
+    // Matches the staffing tool's role_type, plus manager.
+    roles: [
+      { id: 'bartender', label: 'Bartender' },
+      { id: 'barback',   label: 'Barback' },
+      { id: 'captain',   label: 'Captain' },
+      { id: 'manager',   label: 'Manager' },
+    ],
+    statuses: ['Active', 'Inactive', 'Blocked'],
+  };
+
   // ── COMPUTED: column index map ───────────────────────────────────────
   function buildColumnMap() {
     const COL = { timestamp: 0, refId: 1 };
@@ -485,7 +505,7 @@ const APP_CONFIG = (function () {
 
   return {
     google, access, business, webhookUrl, drive, sheetTabs, theme, pricing, scaling, storagePrefix, oauthScopes,
-    stages, intakeFields, hubColumns, intakeForm, applicationFields, applicationForm,
+    stages, intakeFields, hubColumns, intakeForm, applicationFields, applicationForm, roster,
     buildColumnMap, totalColumns, colLetter, lastColumnLetter, k, withBusinessName, applyBranding,
   };
 })();
