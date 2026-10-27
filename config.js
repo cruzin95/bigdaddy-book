@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.0.7';
+const APP_VERSION = '2.1.0';
 
 const APP_CONFIG = (function () {
 
@@ -71,6 +71,11 @@ const APP_CONFIG = (function () {
     // into (under teamFolder). applications.html finds it by this name.
     // Must match Config.gs's APPLICATIONS_FILE_NAME.
     applicationsFile: "Daddy's Team Applications",
+    // Tab inside that spreadsheet where applications.html keeps review
+    // decisions (status, star), one row per person. Created on first use,
+    // after the Applications tab Code.gs writes to. Hub-only: Code.gs never
+    // reads it.
+    applicationsReviewTab: 'Review',
   };
 
   // ── OAUTH SCOPES ──────────────────────────────────────────────────────
