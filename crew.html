@@ -95,10 +95,17 @@ textarea.inp{resize:vertical;min-height:80px;line-height:1.55}
     <div class="form-err" id="formErr"></div>
     <form id="crewForm" novalidate>
       <div class="sec">
-        <div class="field" id="field-fullName">
-          <label for="fullName">Full name</label>
-          <input class="inp" type="text" id="fullName" autocomplete="name" placeholder="First and last name">
-          <div class="err-msg" id="err-fullName">Please enter your first and last name.</div>
+        <div class="row2">
+          <div class="field" id="field-firstName">
+            <label for="firstName">First name</label>
+            <input class="inp" type="text" id="firstName" autocomplete="given-name">
+            <div class="err-msg" id="err-firstName">Please enter your first name.</div>
+          </div>
+          <div class="field" id="field-lastName">
+            <label for="lastName">Last name</label>
+            <input class="inp" type="text" id="lastName" autocomplete="family-name">
+            <div class="err-msg" id="err-lastName">Please enter your last name.</div>
+          </div>
         </div>
         <div class="field" id="field-preferredName">
           <label for="preferredName">What should we call you? <span class="opt">optional</span></label>
@@ -292,15 +299,16 @@ function clearFieldError(id){
   if(err) err.classList.remove('show');
   if(id === 'payMethod') document.getElementById('sec-payMethod').classList.remove('pill-err');
 }
-['fullName', 'phone', 'email', 'payHandle'].forEach(id =>
+['firstName', 'lastName', 'phone', 'email', 'payHandle'].forEach(id =>
   document.getElementById(id).addEventListener('input', () => clearFieldError(id)));
 
 const val = id => document.getElementById(id).value.replace(/\s+/g, ' ').trim();
 let payValue = '';
 function validate(){
   let ok = true;
-  ['fullName', 'phone', 'email', 'payMethod', 'payHandle'].forEach(clearFieldError);
-  if(!/\S+\s+\S+/.test(val('fullName'))){ showFieldError('fullName'); ok = false; }
+  ['firstName', 'lastName', 'phone', 'email', 'payMethod', 'payHandle'].forEach(clearFieldError);
+  if(!val('firstName')){ showFieldError('firstName'); ok = false; }
+  if(!val('lastName')){ showFieldError('lastName'); ok = false; }
   const d = val('phone').replace(/\D/g, '');
   if(!(d.length === 10 || (d.length === 11 && d[0] === '1'))){ showFieldError('phone'); ok = false; }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('email'))){ showFieldError('email'); ok = false; }
@@ -335,7 +343,7 @@ form.addEventListener('submit', async (e) => {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight against Apps Script
       body: JSON.stringify({
         type: 'crew_info',
-        fullName: val('fullName'), preferredName: val('preferredName'),
+        firstName: val('firstName'), lastName: val('lastName'), preferredName: val('preferredName'),
         phone: val('phone'), email: val('email'),
         payMethod: payMethod, payHandle: payValue,
       }),
