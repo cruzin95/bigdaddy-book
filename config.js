@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.2.1';
+const APP_VERSION = '2.3.0';
 
 const APP_CONFIG = (function () {
 
@@ -76,6 +76,9 @@ const APP_CONFIG = (function () {
     // after the Applications tab Code.gs writes to. Hub-only: Code.gs never
     // reads it.
     applicationsReviewTab: 'Review',
+    // Crew info form (crew.html) responses. Created by Code.gs in Team
+    // Only on the first submission; must match Config.gs's CREW_INFO_FILE_NAME.
+    crewInfoFile: "Daddy's Crew Info",
   };
 
   // ── OAUTH SCOPES ──────────────────────────────────────────────────────
