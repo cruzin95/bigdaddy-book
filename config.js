@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.5.0';
 
 const APP_CONFIG = (function () {
 
@@ -454,6 +454,24 @@ const APP_CONFIG = (function () {
       { id: 'manager',   label: 'Manager' },
     ],
     statuses: ['Active', 'Inactive', 'Blocked'],
+    // Fork-only (2.5.0). The Roster page's People tab shows the validated
+    // roster from the staffing tool (Daddy's Crew, on Supabase), read-only,
+    // through its hub-roster function. Not a secret: the function checks the
+    // signed-in Google account against its own allow-list, and that list, not
+    // anything in this file, decides who can read the roster. Empty
+    // rosterUrl = the People tab falls back to the sheet above.
+    staffing: {
+      rosterUrl: 'https://xtuewpvxkohizswkzdih.supabase.co/functions/v1/hub-roster',
+      appUrl: 'https://cruzin95.github.io/bigdaddy-crew/',
+      // The staffing tool's person_status, in its order.
+      statuses: [
+        { id: 'applied',  label: 'Applied' },
+        { id: 'vetting',  label: 'Vetting' },
+        { id: 'approved', label: 'Approved' },
+        { id: 'inactive', label: 'Inactive' },
+        { id: 'blocked',  label: 'Blocked' },
+      ],
+    },
   };
 
   // ── COMPUTED: column index map ───────────────────────────────────────
