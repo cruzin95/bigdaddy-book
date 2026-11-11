@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.5.0';
+const APP_VERSION = '2.6.0';
 
 const APP_CONFIG = (function () {
 
@@ -462,6 +462,11 @@ const APP_CONFIG = (function () {
     // rosterUrl = the People tab falls back to the sheet above.
     staffing: {
       rosterUrl: 'https://xtuewpvxkohizswkzdih.supabase.co/functions/v1/hub-roster',
+      // 2.6.0: accepting an applicant on the Applications page also adds them
+      // here, through the staffing tool's hub-accept function (same Google
+      // account check as the roster read). Empty = off; the sheet roster is
+      // updated either way.
+      acceptUrl: 'https://xtuewpvxkohizswkzdih.supabase.co/functions/v1/hub-accept',
       appUrl: 'https://cruzin95.github.io/bigdaddy-crew/',
       // The staffing tool's person_status, in its order.
       statuses: [
