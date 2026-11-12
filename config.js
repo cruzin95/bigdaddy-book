@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.6.2';
+const APP_VERSION = '2.7.0';
 
 const APP_CONFIG = (function () {
 
@@ -161,23 +161,40 @@ const APP_CONFIG = (function () {
 
   // ── COST SCALING: how staffing & equipment defaults size themselves to
   // the event ──────────────────────────────────────────────────────────
-  // Plain per-guest and per-bar-station rates rather than a hardcoded
-  // lookup table, so a 50-guest backyard party and a 20,000-person
-  // festival both get sane starting numbers from the same formula instead
-  // of jumping between a few hand-picked tiers. All of this is just the
-  // *default* the quote builder fills in when a guest count is known
-  // (see scaleForEvent() in portal.html) -- every line stays editable
-  // afterward, same as any other quote line item. Tune the numbers below;
-  // no code changes needed elsewhere.
+  // STAFFING COUNTS (bartenders, barbacks, leads) now follow the public
+  // crew calculator: portal.html's scaledStaffDefaults() takes them from
+  // CrewMath.estimate() (crew-math.js) using scaling.crewMath below, so the
+  // quote starts from the same numbers the client saw on the booking form.
+  // They are uncapped: a 10,000-guest festival gets the crew the formula
+  // says. The old per-guest staffing keys (guestsPerBartender through
+  // extraBartendersPerStation) stay in place but are only the fallback,
+  // used if crewMath is missing; minBartenders / minBarbacks / minLeads
+  // still apply as floors either way.
+  //
+  // Equipment/supplies are still plain per-guest and per-bar-station rates
+  // rather than a hardcoded lookup table, so a 50-guest backyard party and
+  // a 20,000-person festival both get sane starting numbers from the same
+  // formula. All of this is just the *default* the quote builder fills in
+  // when a guest count is known (see scaleForEvent() in portal.html) --
+  // every line stays editable afterward, same as any other quote line
+  // item. Tune the numbers below; no code changes needed elsewhere.
   const scaling = {
-    // Staffing: 1 of each role per N guests, floored at a minimum crew
-    // and capped at a maximum. The cap matters as much as the floor here:
-    // linear per-guest staffing has to break down somewhere, because a
-    // real 60,000-guest festival doesn't actually run 600 bartenders
-    // billed hourly -- past a point, headcount plateaus and cost is
-    // negotiated as part of the guarantee (the base rate above), not
-    // itemized per bartender-hour. The floor is deliberately just one
-    // bartender and zero barback/lead, matching a small private party.
+    // Public crew calculator (crew-math.js). Ratios are guests per
+    // bartender, keyed by the barType value the form writes. The marketing
+    // site (../bigdaddy-site/assets/crew-math.js) uses the same numbers:
+    // change both together.
+    crewMath: {
+      ratios: { 'Beer & Wine Only': 100, 'Full Bar': 75, 'Signature Cocktails': 50, 'Mocktail / Dry Bar': 50, 'BYOB': 75 },
+      defaultRatio: 75,
+      bartendersPerBarback: 3,
+      bartendersPerStation: 2,
+      bartendersPerLead: 8,
+    },
+
+    // FALLBACK staffing, used only if crewMath above is missing: 1 of each
+    // role per N guests, floored at a minimum crew and capped at a maximum.
+    // The floor is deliberately just one bartender and zero barback/lead,
+    // matching a small private party.
     guestsPerBartender: 150, maxBartenders: 20,
     guestsPerBarback: 300,   maxBarbacks: 10,
     guestsPerLead: 1000,     maxLeads: 4,
@@ -236,15 +253,20 @@ const APP_CONFIG = (function () {
     { id: 'company',        label: 'Company' },
     { id: 'referral',       label: 'Referral Source' },
     { id: 'returningClient',label: 'Returning Client' },
+    { id: 'clientType',     label: 'Client Type' },
     { id: 'eventType',      label: 'Event Type' },
     { id: 'eventDate',      label: 'Event Date' },
+    { id: 'showDays',       label: 'Show Days' },
     { id: 'eventLocation',  label: 'Event Address' },
     { id: 'eventHours',     label: 'Hours Of Bar Service' },
     { id: 'doorsOpen',      label: 'Bar Opens',  askOnForm: false }, // exact clock times, set by staff once confirmed -- the public form only asks for a duration (eventHours)
     { id: 'doorsClose',     label: 'Bar Closes', askOnForm: false },
     { id: 'guestCount',     label: 'Expected Attendance' },
+    { id: 'crewEstimate',   label: 'Crew Estimate (Calculator)' },
     { id: 'leadBartender',  label: 'Lead Bartender Assigned', askOnForm: false }, // staff-assigned, not asked of the public
     { id: 'barType',        label: 'Bar Style' },
+    { id: 'servicesWanted', label: 'Services Wanted' },
+    { id: 'sponsorInterest',label: 'Sponsor Interest' },
     { id: 'barPayModel',    label: 'Open Bar Or Cash Bar' },
     { id: 'barStations',    label: 'Number Of Bar Locations' },
     { id: 'venueSetting',   label: 'Indoor Or Outdoor' },
@@ -277,27 +299,62 @@ const APP_CONFIG = (function () {
   const intakeForm = {
     heroTitle: '{business}',
     heroSubtitle: "You Scream, We Pour",
-    heroPitch: "Remember chasing the ice cream truck as a kid? Same idea, but grown up: it comes to you, and everything on the menu has a kick. Tell us about your event and we'll bring the truck.",
+    heroPitch: "Tell us the venue, the date and the headcount. We'll come back with a bar plan, a crew and the numbers. Festival field or rooftop for 40, same crew.",
     successTitle: "Order's In.",
-    successBody: "Got your scoop. We'll have a quote back to you within a day.",
-    moreToggleLabel: "Tell us more (the juicy details)",
-    moreNote: "None of this is required, but it helps us size the truck.",
+    successBody: "Got it. We'll come back with a bar plan and a quote within a day.",
+    moreToggleLabel: "Tell us more about the bar",
+    moreNote: "None of this is required, but it helps us build the bar plan.",
     submitLabel: 'Send it in',
     submitNote: "We'll follow up by email, usually within a day.",
     sections: [
       {
         key: 'main',
+        // Control kinds the renderer (inquiry.html) knows: name, text, textarea,
+        // pills, pills-multi, date-flex, and crew-math (a read-only panel that
+        // shows the crew-math.js estimate and writes its one-line summary to
+        // writesTo on submit). A text control can carry min/max/step/inputMode
+        // for number inputs; validate: 'integer' checks for a whole number.
+        // showIf: { field, equals | notEquals } hides a control based on a
+        // pill control's value; with nothing picked yet, notEquals counts as
+        // visible and equals as hidden. A hidden control submits blank.
         controls: [
+          { kind: 'pills', id: 'clientType', label: "Who's asking?", asSection: true, required: true, errorMsg: 'Pick the closest one.', writesTo: 'clientType', options: [
+            { value: 'Venue or festival', label: 'Venue or festival' }, { value: 'Brand or agency', label: 'Brand or agency' },
+            { value: 'Private party', label: 'Private party' },
+          ]},
           { kind: 'name', id: 'fullName', label: 'Your name', placeholder: 'Jamie Rivera', autocomplete: 'name', required: true, writesTo: ['firstName', 'lastName'], errorMsg: 'Let us know your name.' },
           { kind: 'text', id: 'email', label: 'Email', htmlType: 'email', placeholder: 'jamie@example.com', autocomplete: 'email', required: true, validate: 'email', writesTo: 'email', errorMsg: 'A valid email helps us get back to you.' },
-          { kind: 'text', id: 'eventType', label: "What's the occasion?", asSection: true, placeholder: 'Wedding, corporate mixer, block party, festival...', required: true, writesTo: 'eventType', errorMsg: "Let us know what you're planning." },
-          { kind: 'text', id: 'eventLocation', label: 'Where\'s the party?', placeholder: 'Venue name or address (we come to you)', required: true, writesTo: 'eventLocation', errorMsg: 'We need to know where to send the truck.' },
-          { kind: 'pills', id: 'guestCount', label: 'How big a crowd?', asSection: true, required: true, hint: "Rough estimate is fine, we'll fine-tune later.", errorMsg: 'Pick your best guess.', writesTo: 'guestCount', options: [
-            { value: '750', label: 'Under 1,000' }, { value: '3000', label: '1,000 – 5,000' },
-            { value: '12000', label: '5,000 – 20,000' }, { value: '25000', label: 'Go big or go home' },
+          { kind: 'text', id: 'company', label: 'Company / organization', optional: true, placeholder: 'If applicable', writesTo: 'company', showIf: { field: 'clientType', notEquals: 'Private party' } },
+          { kind: 'text', id: 'eventType', label: "What are we pouring for?", asSection: true, placeholder: 'Festival, concert, brand event, wedding, block party...', required: true, writesTo: 'eventType', errorMsg: "Let us know what you're planning." },
+          { kind: 'text', id: 'eventLocation', label: 'Where is it?', placeholder: 'Venue name or address (we come to you)', required: true, writesTo: 'eventLocation', errorMsg: 'We need to know where to send the crew.' },
+          { kind: 'text', id: 'guestCount', label: 'How many people?', htmlType: 'number', min: 1, step: 1, inputMode: 'numeric', validate: 'integer', required: true, placeholder: 'e.g. 2500', hint: 'Per day, if it runs more than one. Best guess is fine.', errorMsg: 'Give us a number, even a rough one.', writesTo: 'guestCount' },
+          { kind: 'text', id: 'eventHours', label: 'Hours of bar service', htmlType: 'number', min: 1, max: 24, step: 1, inputMode: 'numeric', validate: 'integer', optional: true, placeholder: 'e.g. 5', hint: 'Per day. Rough is fine.', errorMsg: 'Use a whole number of hours, 1 to 24.', writesTo: 'eventHours' },
+          { kind: 'pills', id: 'barType', label: "What's pouring?", asSection: true, writesTo: 'barType', options: [
+            { value: 'Beer & Wine Only', label: 'Beer & wine' }, { value: 'Full Bar', label: 'Full bar' },
+            { value: 'Signature Cocktails', label: 'Cocktails' }, { value: 'Mocktail / Dry Bar', label: 'Zero-proof' },
+            { value: 'BYOB', label: 'BYOB, just send bartenders' },
           ]},
+          // Live crew calculator: reads guestCount, eventHours and barType,
+          // sizes the crew with CrewMath and scaling.crewMath, and writes
+          // CrewMath.summary() into crewEstimate on submit.
+          { kind: 'crew-math', id: 'crewEstimate', writesTo: 'crewEstimate',
+            from: { guests: 'guestCount', hours: 'eventHours', barType: 'barType' },
+            title: 'Your crew, ballpark',
+            labels: { bartenders: 'Bartenders', barbacks: 'Barbacks', stations: 'Bar stations', leads: 'Bar leads' },
+            totalsLine: 'About {drinks} drinks \u00b7 {ice} lb of ice',
+            note: 'Rule of thumb: one bartender per 100 guests for beer and wine, 75 for a full bar, 50 for cocktails. We firm it up on the walkthrough.',
+            emptyNote: 'Enter a headcount to see your crew.' },
           { kind: 'date-flex', id: 'eventDate', label: 'Event date', flexLabel: 'Still deciding / date is flexible', writesTo: 'eventDate' },
-          { kind: 'text', id: 'eventHours', label: 'How many hours do you need us pouring?', htmlType: 'number', optional: true, placeholder: 'e.g. 5', hint: "Rough estimate is fine, we'll nail down exact times later.", writesTo: 'eventHours' },
+          { kind: 'text', id: 'showDays', label: 'How many show days?', htmlType: 'number', min: 1, step: 1, inputMode: 'numeric', validate: 'integer', optional: true, placeholder: 'e.g. 4', errorMsg: 'Use a whole number, 1 or more.', writesTo: 'showDays', showIf: { field: 'clientType', notEquals: 'Private party' } },
+          { kind: 'pills-multi', id: 'servicesWanted', label: 'What do you need from us?', optional: true, hint: 'Pick any. One piece or the whole bar.', writesTo: 'servicesWanted', options: [
+            { value: 'Bar program', label: 'Bar program' }, { value: 'Staffing', label: 'Staffing' },
+            { value: 'Liquor license', label: 'Liquor license' }, { value: 'Permits', label: 'Permits' },
+            { value: 'VIP bar', label: 'VIP bar' }, { value: 'Sponsors', label: 'Sponsors' },
+            { value: 'Food', label: 'Food' }, { value: 'Rentals', label: 'Rentals' },
+          ]},
+          { kind: 'pills', id: 'sponsorInterest', label: 'Want liquor sponsors on this?', optional: true, hint: 'Brands pay for pouring rights. No fixed cost to you.', writesTo: 'sponsorInterest', showIf: { field: 'clientType', notEquals: 'Private party' }, options: [
+            { value: 'Yes', label: 'Yes' }, { value: 'Tell me more', label: 'Tell me more' }, { value: 'No', label: 'No' },
+          ]},
           { kind: 'text', id: 'phone', label: 'Phone', htmlType: 'tel', optional: true, placeholder: '(555) 123-4567', autocomplete: 'tel', writesTo: 'phone' },
           { kind: 'pills', id: 'budget', label: 'Ballpark budget', optional: true, hint: "Optional, but it helps us pour a quote that fits.", writesTo: 'budget', options: [
             { value: 'Under $5k', label: 'Under $5k' }, { value: '$5k - $15k', label: '$5k – $15k' },
@@ -309,21 +366,13 @@ const APP_CONFIG = (function () {
       {
         key: 'more',
         controls: [
-          [
-            { kind: 'text', id: 'company', label: 'Company / organization', placeholder: 'If applicable', writesTo: 'company' },
-            { kind: 'pills', id: 'referral', label: "How'd you hear about us?", writesTo: 'referral', options: [
-              { value: 'Google', label: 'Google' }, { value: 'Instagram', label: 'Instagram' },
-              { value: 'Word of mouth', label: 'Word of mouth' }, { value: 'Past guest', label: 'Past guest' },
-              { value: 'Other', label: 'Other' },
-            ]},
-          ],
-          { kind: 'pills', id: 'returningClient', label: 'Have you booked {business} before?', writesTo: 'returningClient', valueMap: { Yes: 'true', No: 'false' }, options: [
-            { value: 'Yes', label: "Yes, we're repeat customers" }, { value: 'No', label: 'No, this is our first scoop' },
+          { kind: 'pills', id: 'referral', label: "How'd you hear about us?", writesTo: 'referral', options: [
+            { value: 'Google', label: 'Google' }, { value: 'Instagram', label: 'Instagram' },
+            { value: 'Word of mouth', label: 'Word of mouth' }, { value: 'Past guest', label: 'Past guest' },
+            { value: 'Other', label: 'Other' },
           ]},
-          { kind: 'pills', id: 'barType', label: 'What kind of bar are we talking?', asSection: true, writesTo: 'barType', options: [
-            { value: 'Full Bar', label: 'Full bar' }, { value: 'Beer & Wine Only', label: 'Beer & wine only' },
-            { value: 'Signature Cocktails', label: 'Signature cocktails' }, { value: 'Mocktail / Dry Bar', label: 'Mocktail / dry bar' },
-            { value: 'BYOB', label: 'BYOB (just send bartenders)' },
+          { kind: 'pills', id: 'returningClient', label: 'Have you booked {business} before?', writesTo: 'returningClient', valueMap: { Yes: 'true', No: 'false' }, options: [
+            { value: 'Yes', label: "Yes, we're repeat customers" }, { value: 'No', label: 'No, this is our first time' },
           ]},
           { kind: 'pills', id: 'barPayModel', label: 'Open bar or cash bar?', hint: "Open bar means you're covering it; cash bar means guests pay their own way.", writesTo: 'barPayModel', options: [
             { value: 'Open Bar', label: 'Open bar' }, { value: 'Cash Bar', label: 'Cash bar' },

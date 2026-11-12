@@ -93,6 +93,16 @@ textarea.inp{resize:vertical;min-height:80px;line-height:1.55}
 .success .direct{margin-top:22px;font-family:var(--mono);font-size:.8rem;color:var(--muted-2)}
 .success .direct a{color:var(--amber);text-decoration:none}
 
+/* ---- crew calculator panel ---- */
+.crew{background:var(--surface-2);border:1px solid var(--line-2);border-radius:0;padding:18px 18px 16px}
+.crew-title{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:14px}
+.crew-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:480px){.crew-grid{grid-template-columns:repeat(2,1fr);gap:14px 10px}}
+.crew-num{font-family:var(--mono);font-size:1.9rem;font-weight:700;line-height:1.1;color:var(--ink)}
+.crew-lbl{font-size:.72rem;color:var(--muted);margin-top:3px}
+.crew-line{font-family:var(--mono);font-size:.78rem;color:var(--ink);margin-top:16px;padding-top:12px;border-top:1px solid var(--line-2)}
+.crew-note{font-size:.76rem;color:var(--muted-2);margin-top:10px;line-height:1.5}
+
 .form-view.hidden{display:none}
 </style>
 </head>
@@ -127,6 +137,7 @@ textarea.inp{resize:vertical;min-height:80px;line-height:1.55}
 </div>
 
 <script src="config.js"></script>
+<script src="crew-math.js"></script>
 <script>
 /* ── FORM RENDERER ─────────────────────────────────────────────────────
    Everything below reads its shape from APP_CONFIG.intakeForm
@@ -233,7 +244,7 @@ function initPillGroup(id, multi){
         singleSelect[id] = val;
       }
       clearFieldError(id);
-      applyShowIf();
+      onFormChange();
     });
   });
 }
@@ -242,20 +253,57 @@ function initPillGroup(id, multi){
    A control can declare showIf: {field, equals} or {field, notEquals} to
    hide itself based on another (pill-group) control's current value --
    e.g. hiding the POS question entirely for an open bar, since nobody's
-   swiping a card. Re-evaluated after every pill click; the default (no
-   selection yet) always counts as visible, so nothing flashes on load. */
+   swiping a card. The default (no
+   selection yet) counts as visible for notEquals (so a 'not a private
+   party' control shows until someone picks Private party) and hidden for
+   equals. Re-evaluated after every pill click and after the URL prefill.
+   A control that is hidden submits an empty string (see buildPayload). */
+function isHiddenByShowIf(ctrl){
+  if(!ctrl.showIf) return false;
+  const current = singleSelect[ctrl.showIf.field];
+  let visible = true;
+  if('equals' in ctrl.showIf) visible = current === ctrl.showIf.equals;
+  if('notEquals' in ctrl.showIf) visible = current !== ctrl.showIf.notEquals;
+  return !visible;
+}
 function applyShowIf(){
   allControls.forEach(ctrl => {
     if(!ctrl.showIf) return;
     const wrap = document.getElementById('sec-' + ctrl.id) || document.getElementById('field-' + ctrl.id);
     if(!wrap) return;
-    const current = singleSelect[ctrl.showIf.field];
-    let visible = true;
-    if('equals' in ctrl.showIf) visible = current === ctrl.showIf.equals;
-    if('notEquals' in ctrl.showIf) visible = current !== ctrl.showIf.notEquals;
-    wrap.hidden = !visible;
+    wrap.hidden = isHiddenByShowIf(ctrl);
+    if(wrap.hidden) clearFieldError(ctrl.id);
   });
 }
+
+/* ── crew calculator (kind 'crew-math') ───────────────────────────────
+   Reads the controls named in ctrl.from, sizes the crew with CrewMath
+   (crew-math.js) and APP_CONFIG.scaling.crewMath, and fills the panel.
+   Every string on the panel comes from the control's config. */
+function crewEstimateFor(ctrl){
+  const from = ctrl.from || {};
+  const rawGuests = (document.getElementById(from.guests) || {}).value || '';
+  const rawHours = (document.getElementById(from.hours) || {}).value || '';
+  const guests = /^\d+$/.test(rawGuests.trim()) ? Number(rawGuests.trim()) : 0;
+  const hours = /^\d+$/.test(rawHours.trim()) ? Number(rawHours.trim()) : '';
+  const cfg = (APP_CONFIG.scaling && APP_CONFIG.scaling.crewMath) || {};
+  return CrewMath.estimate(Object.assign({}, cfg, { guests, hours, barType: singleSelect[from.barType] || '' }));
+}
+function updateCrewPanels(){
+  allControls.filter(c => c.kind === 'crew-math').forEach(ctrl => {
+    const panel = document.getElementById('crew-' + ctrl.id);
+    if(!panel) return;
+    const est = crewEstimateFor(ctrl);
+    const dash = '-';
+    ['bartenders','barbacks','stations','leads'].forEach(k => {
+      panel.querySelector('[data-k="' + k + '"]').textContent = est ? CrewMath.format(est[k]) : dash;
+    });
+    panel.querySelector('[data-role="line"]').textContent = est
+      ? String(ctrl.totalsLine || '').replace('{drinks}', CrewMath.format(est.drinks)).replace('{ice}', CrewMath.format(est.iceLb))
+      : (ctrl.emptyNote || '');
+  });
+}
+function onFormChange(){ applyShowIf(); updateCrewPanels(); reportHeight(); }
 
 /* ── render one control (input/pills/date/textarea) as HTML ────────── */
 function optTag(ctrl){ return ctrl.optional ? `<span class="opt">optional</span>` : (ctrl.optionalTag ? `<span class="opt">${ctrl.optionalTag}</span>` : ''); }
@@ -269,13 +317,28 @@ function pillsHtml(ctrl){
 function escHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escAttr(s){ return escHtml(s); }
 
+function crewPanelHtml(ctrl){
+  const L = ctrl.labels || {};
+  const cell = k => `<div><div class="crew-num" data-k="${k}">-</div><div class="crew-lbl">${escHtml(L[k] || '')}</div></div>`;
+  return `<div class="sec" id="sec-${ctrl.id}">
+    <div class="crew" id="crew-${ctrl.id}" aria-live="polite">
+      <div class="crew-title">${escHtml(ctrl.title || '')}</div>
+      <div class="crew-grid">${['bartenders','barbacks','stations','leads'].map(cell).join('')}</div>
+      <div class="crew-line" data-role="line">${escHtml(ctrl.emptyNote || '')}</div>
+      <div class="crew-note">${escHtml(ctrl.note || '')}</div>
+    </div>
+  </div>`;
+}
+
 function renderControl(ctrl){
   controlsById[ctrl.id] = ctrl;
+  if(ctrl.kind === 'crew-math') return crewPanelHtml(ctrl);
   const label = T(ctrl.label);
   let inner = '';
 
   if(ctrl.kind === 'name' || ctrl.kind === 'text'){
-    inner = `<input class="inp" type="${ctrl.htmlType||'text'}" id="${ctrl.id}" placeholder="${escAttr(ctrl.placeholder||'')}" ${ctrl.autocomplete?`autocomplete="${ctrl.autocomplete}"`:''}>`;
+    const numAttrs = ['min','max','step'].filter(k => ctrl[k] != null).map(k => `${k}="${escAttr(ctrl[k])}"`).join(' ') + (ctrl.inputMode ? ` inputmode="${escAttr(ctrl.inputMode)}"` : '');
+    inner = `<input class="inp" type="${ctrl.htmlType||'text'}" id="${ctrl.id}" placeholder="${escAttr(ctrl.placeholder||'')}" ${ctrl.autocomplete?`autocomplete="${ctrl.autocomplete}"`:''} ${numAttrs}>`;
   } else if(ctrl.kind === 'textarea'){
     inner = `<textarea class="inp" id="${ctrl.id}" placeholder="${escAttr(ctrl.placeholder||'')}"></textarea>`;
   } else if(ctrl.kind === 'pills' || ctrl.kind === 'pills-multi'){
@@ -347,6 +410,15 @@ allControls.forEach(ctrl => {
 });
 applyShowIf();
 
+// The crew panel recomputes as the headcount and hours are typed.
+allControls.filter(c => c.kind === 'crew-math').forEach(ctrl => {
+  const from = ctrl.from || {};
+  [from.guests, from.hours].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('input', () => { clearFieldError(id); updateCrewPanels(); reportHeight(); });
+  });
+});
+
 // Wire up any date-flex checkboxes.
 allControls.filter(c => c.kind === 'date-flex').forEach(ctrl => {
   const dateInput = document.getElementById(ctrl.id);
@@ -366,6 +438,7 @@ if(moreToggle && moreWrap){
     const open = moreWrap.classList.toggle('open');
     moreToggle.classList.toggle('open', open);
     moreToggle.firstChild.textContent = open ? 'Show less ' : F.moreToggleLabel + ' ';
+    reportHeight();
   });
 }
 
@@ -375,24 +448,42 @@ function showFieldError(id){
   if(err) err.classList.add('show');
   const sec = document.getElementById('sec-' + id);
   if(sec) sec.classList.add('pill-err');
+  reportHeight();
 }
 function clearFieldError(id){
   const err = document.getElementById('err-' + id);
   if(err) err.classList.remove('show');
   const sec = document.getElementById('sec-' + id);
   if(sec) sec.classList.remove('pill-err');
+  reportHeight();
 }
 function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+// A whole number inside the control's min/max, if it has them.
+function isValidInteger(v, ctrl){
+  if(!/^\d+$/.test(v)) return false;
+  const n = Number(v);
+  if(ctrl.min != null && n < ctrl.min) return false;
+  if(ctrl.max != null && n > ctrl.max) return false;
+  return true;
+}
 
 function validate(){
   let ok = true;
   allControls.forEach(ctrl => clearFieldError(ctrl.id));
 
   allControls.forEach(ctrl => {
-    if(!ctrl.required) return;
+    if(ctrl.kind === 'crew-math' || isHiddenByShowIf(ctrl)) return;
+    if(!ctrl.required){
+      // Optional number fields are only checked when something was typed.
+      if(ctrl.kind === 'text' && ctrl.validate === 'integer'){
+        const v = document.getElementById(ctrl.id).value.trim();
+        if(v && !isValidInteger(v, ctrl)){ showFieldError(ctrl.id); ok = false; }
+      }
+      return;
+    }
     if(ctrl.kind === 'name' || ctrl.kind === 'text' || ctrl.kind === 'textarea'){
       const v = document.getElementById(ctrl.id).value.trim();
-      if(!v || (ctrl.validate === 'email' && !isValidEmail(v))){ showFieldError(ctrl.id); ok = false; }
+      if(!v || (ctrl.validate === 'email' && !isValidEmail(v)) || (ctrl.validate === 'integer' && !isValidInteger(v, ctrl))){ showFieldError(ctrl.id); ok = false; }
     } else if(ctrl.kind === 'pills'){
       if(!singleSelect[ctrl.id]){ showFieldError(ctrl.id); ok = false; }
     } else if(ctrl.kind === 'pills-multi'){
@@ -424,13 +515,21 @@ function buildPayload(){
   APP_CONFIG.intakeFields.forEach(f => { payload[f.id] = ''; });
 
   allControls.forEach(ctrl => {
-    if(ctrl.kind === 'name'){
+    // A control hidden by showIf must not submit a stale answer from before
+    // it was hidden: its columns stay blank.
+    if(isHiddenByShowIf(ctrl)) return;
+    if(ctrl.kind === 'crew-math'){
+      payload[ctrl.writesTo] = CrewMath.summary(crewEstimateFor(ctrl));
+    } else if(ctrl.kind === 'name'){
       const name = document.getElementById(ctrl.id).value.trim();
       const parts = name.split(/\s+/).filter(Boolean);
       payload[ctrl.writesTo[0]] = parts[0] || '';
       payload[ctrl.writesTo[1]] = parts.slice(1).join(' ') || '';
     } else if(ctrl.kind === 'text' || ctrl.kind === 'textarea'){
-      payload[ctrl.writesTo] = document.getElementById(ctrl.id).value.trim();
+      let v = document.getElementById(ctrl.id).value.trim();
+      // Whole-number fields are written as the plain integer string.
+      if(ctrl.validate === 'integer' && /^\d+$/.test(v)) v = String(Number(v));
+      payload[ctrl.writesTo] = v;
     } else if(ctrl.kind === 'pills-multi'){
       const set = multiSelect[ctrl.id];
       payload[ctrl.writesTo] = set && set.size ? [...set].join(ctrl.joinWith || ', ') : '';
@@ -508,6 +607,66 @@ form.addEventListener('submit', async (e) => {
     submitBtn.textContent = F.submitLabel;
   }
 });
+
+/* ── URL prefill ─────────────────────────────────────────────────────
+   The marketing site's calculator links here with ?guests=&hours=&style=.
+   Only plain whole numbers in range and the three known style keys are
+   accepted; anything else is dropped silently. Values go into input.value
+   or are matched against the pill options, never written in as HTML. */
+(function prefillFromUrl(){
+  let q;
+  try{ q = new URLSearchParams(window.location.search); }catch(e){ return; }
+  function intParam(name, min, max){
+    const raw = (q.get(name) || '').trim();
+    if(!/^\d{1,7}$/.test(raw)) return null;
+    const n = Number(raw);
+    return n >= min && n <= max ? n : null;
+  }
+  const guests = intParam('guests', 1, 1000000);
+  const hours = intParam('hours', 1, 24);
+  const STYLE = { 'beer-wine': 'Beer & Wine Only', 'full': 'Full Bar', 'cocktails': 'Signature Cocktails' };
+  const style = Object.prototype.hasOwnProperty.call(STYLE, q.get('style')) ? STYLE[q.get('style')] : null;
+
+  function setInput(id, n){
+    const el = document.getElementById(id);
+    if(el && n != null) el.value = String(n);
+  }
+  allControls.forEach(ctrl => {
+    if(ctrl.id === 'guestCount') setInput(ctrl.id, guests);
+    if(ctrl.id === 'eventHours') setInput(ctrl.id, hours);
+    if(ctrl.id === 'barType' && style){
+      const group = document.getElementById('pills-barType');
+      if(!group) return;
+      group.querySelectorAll('.pill').forEach(p => {
+        if(p.dataset.val === style){ p.classList.add('active'); singleSelect.barType = style; }
+      });
+    }
+  });
+  onFormChange();
+})();
+
+/* ── tell the embedding page how tall we are ──────────────────────────
+   Same pattern as apply.html: daddyscatering.co can embed this form in an
+   iframe and resize it from the 'bigdaddy:height' message (same type name,
+   same '*' target origin as apply.html -- the message carries only a number).
+   Measures .wrap rather than the document so the parent growing the iframe
+   can never feed back into the number. Also re-sent explicitly when the
+   "more" section toggles, the crew panel changes and validation errors
+   appear, and on resize. */
+var lastReportedHeight = 0; // var, not let: reportHeight() can run before this line during load
+function reportHeight(){
+  if(window.parent === window) return;
+  const wrap = document.querySelector('.wrap');
+  if(!wrap) return;
+  const h = Math.ceil(wrap.getBoundingClientRect().height);
+  if(h === lastReportedHeight) return;
+  lastReportedHeight = h;
+  window.parent.postMessage({ type: 'bigdaddy:height', height: h }, '*');
+}
+reportHeight();
+window.addEventListener('load', reportHeight);
+window.addEventListener('resize', reportHeight);
+if('ResizeObserver' in window) new ResizeObserver(reportHeight).observe(document.querySelector('.wrap'));
 </script>
 </body>
 </html>
