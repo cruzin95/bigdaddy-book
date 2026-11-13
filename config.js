@@ -28,7 +28,7 @@
 // portal.html.
 // ═══════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = '2.7.0';
+const APP_VERSION = '2.7.1';
 
 const APP_CONFIG = (function () {
 
